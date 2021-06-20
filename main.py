@@ -4,6 +4,39 @@ import pygame
 # Initialize the pygame
 pygame.init()
 
+
+# Player sprite
+class Player(pygame.sprite.Sprite):
+    """
+    A player class which user can control
+    """
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+        # HP & MP attributes
+        self.full_hp = 100
+        self.hp = self.full_hp
+        self.full_mp = 100
+        self.mp = self.full_mp
+
+        # score & coins attribute
+        self.score = 0
+        self.coins = 0
+
+        # Position, Speed & acceleration attribute
+        # Unit of speed: pixel/sec
+        # Unit of acceleration: pixel/sec^2
+        self.x_pos = self.y_pos = 0
+        self.max_speed = 180
+        self.speed = 0
+        self.x_speed = self.y_speed = 0
+        self.acc = 6
+
+        # Attributes for attack
+        self.weapons = []
+
+
 # Create the screen
 screen = pygame.display.set_mode((1200, 800))
 
