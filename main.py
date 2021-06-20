@@ -22,3 +22,8 @@ while running:
         # Check whether quit button clicked
         if event.type == pygame.QUIT:
             running = False
+
+    # All colors will be represented with RGB tuple (r, g, b)
+    screen.fill((0, 0, 0))      # fill the screen background with black(0, 0, 0) before drawing all other sprites
+
+    pygame.display.update()     # update all display changes and show them
