@@ -33,6 +33,12 @@ class Player(pygame.sprite.Sprite):
         self.x_speed = self.y_speed = 0
         self.acc = 6
 
+        # Image & rect attributes
+        self.image = pygame.Surface([30, 30])
+        self.image.fill((255, 255, 255))        # player color white
+        self.rect = self.image.get_rect()
+        self.rect.topleft = [self.x_pos, self.y_pos]
+
         # Attributes for weapons
         self.weapons = []
 
