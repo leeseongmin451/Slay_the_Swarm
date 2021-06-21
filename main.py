@@ -33,7 +33,7 @@ class Player(pygame.sprite.Sprite):
         self.x_speed = self.y_speed = 0
         self.acc = 6
 
-        # Attributes for attack
+        # Attributes for weapons
         self.weapons = []
 
 
@@ -44,6 +44,10 @@ screen = pygame.display.set_mode((1200, 800))
 icon = pygame.image.load("icon.png")
 pygame.display.set_icon(icon)                   # Set icon
 pygame.display.set_caption("Slay the Swarm")    # Set title
+
+# frame control
+fps = 60
+fps_clock = pygame.time.Clock()
 
 
 # Main game loop
@@ -60,3 +64,4 @@ while running:
     screen.fill((0, 0, 0))      # fill the screen background with black(0, 0, 0) before drawing all other sprites
 
     pygame.display.update()     # update all display changes and show them
+    fps_clock.tick(fps)         # make program never run at more than "fps" frames per second
