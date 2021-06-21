@@ -55,6 +55,13 @@ pygame.display.set_caption("Slay the Swarm")    # Set title
 fps = 60
 fps_clock = pygame.time.Clock()
 
+# Generate sprite groups
+all_sprites = pygame.sprite.Group()
+
+# Generate player instance and add to sprite group
+player = Player()
+all_sprites.add(player)
+
 
 # Main game loop
 running = True      # Variable to check whether continue game
@@ -68,6 +75,9 @@ while running:
 
     # All colors will be represented with RGB tuple (r, g, b)
     screen.fill((0, 0, 0))      # fill the screen background with black(0, 0, 0) before drawing all other sprites
+
+    # Draw all sprites
+    all_sprites.draw(screen)
 
     pygame.display.update()     # update all display changes and show them
     fps_clock.tick(fps)         # make program never run at more than "fps" frames per second
