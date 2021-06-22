@@ -41,6 +41,7 @@ class Player(pygame.sprite.Sprite):
         self.x_pos = self.y_pos = 0
         self.max_speed = 180
         self.speed = 0
+        self.max_x_speed = self.max_y_speed = 0
         self.x_speed = self.y_speed = 0
         self.acc = 6
 
@@ -60,32 +61,50 @@ class Player(pygame.sprite.Sprite):
         """
 
         # Accelerate player with WASD key
-        keys = pygame.key.get_pressed()
-        current_speed = rms(self.x_speed, self.y_speed)
+        keys = pygame.key.get_pressed()         # Get keyboard inputs
+        wsad_pressed = [keys[pygame.K_w], keys[pygame.K_s], keys[pygame.K_a], keys[pygame.K_d]]     # Get only WSAD inputs
 
-        if keys[pygame.K_w]:        # Accelerate upwards with key "w"
-            if current_speed < self.max_speed:
-                self.y_speed -= self.acc
-        elif self.y_speed < 0:
-            self.y_speed += self.acc
+        # Determine max speed in x/y direction according to combination of WSAD keys
+        # Restrict max speed for x, y direction within 70.7% of max speed when moving diagonal direction using two keys
+        if wsad_pressed == [True, False, False, False]:     # Accelerate up
+            self.max_x_speed = 0
+            self.max_y_speed = -self.max_speed
+        elif wsad_pressed == [False, True, False, False]:   # Accelerate down
+            self.max_x_speed = 0
+            self.max_y_speed = self.max_speed
+        elif wsad_pressed == [False, False, True, False]:   # Accelerate left
+            self.max_x_speed = -self.max_speed
+            self.max_y_speed = 0
+        elif wsad_pressed == [False, False, False, True]:   # Accelerate right
+            self.max_x_speed = self.max_speed
+            self.max_y_speed = 0
+        elif wsad_pressed == [True, False, True, False]:    # Accelerate up & left
+            self.max_x_speed = -self.max_speed / math.sqrt(2)
+            self.max_y_speed = -self.max_speed / math.sqrt(2)
+        elif wsad_pressed == [True, False, False, True]:    # Accelerate up & right
+            self.max_x_speed = self.max_speed / math.sqrt(2)
+            self.max_y_speed = -self.max_speed / math.sqrt(2)
+        elif wsad_pressed == [False, True, True, False]:    # Accelerate down & left
+            self.max_x_speed = -self.max_speed / math.sqrt(2)
+            self.max_y_speed = self.max_speed / math.sqrt(2)
+        elif wsad_pressed == [False, True, False, True]:    # Accelerate down & right
+            self.max_x_speed = self.max_speed / math.sqrt(2)
+            self.max_y_speed = self.max_speed / math.sqrt(2)
+        else:                                               # Stop when all other combinations of keys
+            self.max_x_speed = self.max_y_speed = 0
 
-        if keys[pygame.K_s]:        # Accelerate downwards with key "s"
-            if current_speed < self.max_speed:
-                self.y_speed += self.acc
-        elif self.y_speed > 0:
-            self.y_speed -= self.acc
-
-        if keys[pygame.K_a]:        # Accelerate left with key "a"
-            if current_speed < self.max_speed:
-                self.x_speed -= self.acc
-        elif self.x_speed < 0:
+        # Increment or decrement x/y direction speed
+        # Do not accelerate when current speed is near 0. (-acc/2 <= speed <= acc/2)
+        # for x direction
+        if self.x_speed < self.max_x_speed - self.acc / 2:
             self.x_speed += self.acc
-
-        if keys[pygame.K_d]:        # Accelerate right with key "d"
-            if current_speed < self.max_speed:
-                self.x_speed += self.acc
-        elif self.x_speed > 0:
+        elif self.x_speed > self.max_x_speed + self.acc / 2:
             self.x_speed -= self.acc
+        # for y direction
+        if self.y_speed < self.max_y_speed - self.acc / 2:
+            self.y_speed += self.acc
+        elif self.y_speed > self.max_y_speed + self.acc / 2:
+            self.y_speed -= self.acc
 
         # Move the position of player according to current speed (per fps)
         # And set the actual position on the screen
