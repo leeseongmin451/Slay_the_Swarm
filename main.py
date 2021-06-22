@@ -46,8 +46,7 @@ class Player(pygame.sprite.Sprite):
         self.acc = 1200
 
         # Image & rect attributes
-        self.image = pygame.Surface([30, 30])
-        self.image.fill((255, 255, 255))        # player color white
+        self.image = pygame.transform.scale(player_img, [30, 30])
         self.rect = self.image.get_rect()
         self.rect.topleft = [self.x_pos, self.y_pos]
 
@@ -117,13 +116,16 @@ class Player(pygame.sprite.Sprite):
 screen = pygame.display.set_mode((1200, 800))
 
 # Game title and icon
-icon = pygame.image.load("icon.png")
+icon = pygame.image.load("img/icon/icon.png")
 pygame.display.set_icon(icon)                   # Set icon
 pygame.display.set_caption("Slay the Swarm")    # Set title
 
 # frame control
 fps = 60
 fps_clock = pygame.time.Clock()
+
+# Load all images
+player_img = pygame.image.load("img/character/player.png").convert()
 
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()
