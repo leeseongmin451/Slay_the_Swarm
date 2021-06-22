@@ -93,6 +93,34 @@ class Player(pygame.sprite.Sprite):
         self.rect.topleft = [round(self.x_pos), round(self.y_pos)]
 
 
+class PlayerMinigun:
+    """
+    A weapon class which player sprite can use.
+    Shoots one/multiple lines of small bullets.
+    This is an abstract sprite and invisible on the screen.
+    """
+
+    def __init__(self):
+        pass
+
+    def attack(self):
+        pass
+
+
+class PlayerNormalBullet(pygame.sprite.Sprite):
+    """
+    A bullet class shot from PlayerMinigun class.
+    Moves straight line from the player to aimed direction.
+    Killed(disappears) when collided with enemy sprites and gives damage to them.
+    """
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+    def update(self):
+        pass
+
+
 # Create the screen
 screen = pygame.display.set_mode((1200, 800))
 
