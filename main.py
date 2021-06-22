@@ -39,11 +39,11 @@ class Player(pygame.sprite.Sprite):
         # Unit of speed: pixel/sec
         # Unit of acceleration: pixel/sec^2
         self.x_pos = self.y_pos = 0
-        self.max_speed = 180
+        self.max_speed = 240
         self.speed = 0
         self.max_x_speed = self.max_y_speed = 0
         self.x_speed = self.y_speed = 0
-        self.acc = 6
+        self.acc = 1200
 
         # Image & rect attributes
         self.image = pygame.Surface([30, 30])
@@ -96,15 +96,15 @@ class Player(pygame.sprite.Sprite):
         # Increment or decrement x/y direction speed
         # Do not accelerate when current speed is near 0. (-acc/2 <= speed <= acc/2)
         # for x direction
-        if self.x_speed < self.max_x_speed - self.acc / 2:
-            self.x_speed += self.acc
-        elif self.x_speed > self.max_x_speed + self.acc / 2:
-            self.x_speed -= self.acc
+        if self.x_speed < self.max_x_speed - self.acc / (2 * fps):
+            self.x_speed += self.acc / fps
+        elif self.x_speed > self.max_x_speed + self.acc / (2 * fps):
+            self.x_speed -= self.acc / fps
         # for y direction
-        if self.y_speed < self.max_y_speed - self.acc / 2:
-            self.y_speed += self.acc
-        elif self.y_speed > self.max_y_speed + self.acc / 2:
-            self.y_speed -= self.acc
+        if self.y_speed < self.max_y_speed - self.acc / (2 * fps):
+            self.y_speed += self.acc / fps
+        elif self.y_speed > self.max_y_speed + self.acc / (2 * fps):
+            self.y_speed -= self.acc / fps
 
         # Move the position of player according to current speed (per fps)
         # And set the actual position on the screen
