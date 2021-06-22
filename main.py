@@ -1,4 +1,5 @@
 import pygame
+from pygame.locals import *
 import math
 
 
@@ -39,11 +40,11 @@ class Player(pygame.sprite.Sprite):
         # Unit of speed: pixel/sec
         # Unit of acceleration: pixel/sec^2
         self.x_pos = self.y_pos = 400
-        self.max_speed = 240
+        self.max_speed = 360
         self.speed = 0
         self.max_x_speed = self.max_y_speed = 0
         self.x_speed = self.y_speed = 0
-        self.acc = 1200
+        self.acc = 1800
 
         # Image & rect attributes
         self.image = pygame.transform.scale(player_img, [30, 30])
@@ -122,7 +123,8 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
 
 
 # Create the screen
-screen = pygame.display.set_mode((1200, 800))
+flags = FULLSCREEN | DOUBLEBUF
+screen = pygame.display.set_mode((1920, 1080), flags, 16)
 
 # Game title and icon
 icon = pygame.image.load("img/icon/icon.png")
@@ -132,6 +134,9 @@ pygame.display.set_caption("Slay the Swarm")    # Set title
 # frame control
 fps = 60
 fps_clock = pygame.time.Clock()
+
+# Allow only cretain events (for performance)
+pygame.event.set_allowed([pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
 
 # Load all images
 player_img = pygame.image.load("img/character/player.png").convert()
