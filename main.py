@@ -93,9 +93,6 @@ class Player(pygame.sprite.Sprite):
         self.rect.topleft = [round(self.x_pos), round(self.y_pos)]
 
 
-# Load all images
-player_img = pygame.image.load("img/character/player.png").convert()
-
 # Create the screen
 screen = pygame.display.set_mode((1200, 800))
 
@@ -107,6 +104,9 @@ pygame.display.set_caption("Slay the Swarm")    # Set title
 # frame control
 fps = 60
 fps_clock = pygame.time.Clock()
+
+# Load all images
+player_img = pygame.image.load("img/character/player.png").convert()
 
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()
