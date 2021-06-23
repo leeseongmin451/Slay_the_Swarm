@@ -54,7 +54,7 @@ class Player(pygame.sprite.Sprite):
         # Attributes for weapons
         self.weapons = []
 
-    def update(self):
+    def update(self, fps):
         """
         Update function for moving player sprite, using weapons per frame
         :return: None
@@ -87,7 +87,7 @@ class Player(pygame.sprite.Sprite):
         elif self.y_speed > self.max_y_speed + self.acc / (2 * fps):
             self.y_speed -= self.acc / fps
 
-        # Move the position of player according to current speed (per fps)
+        # Move the position of player according to current speed (per FPS)
         # And set the actual position on the screen
         self.x_pos += self.x_speed / fps
         self.y_pos += self.y_speed / fps
@@ -118,7 +118,7 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
 
-    def update(self):
+    def update(self, fps):
         pass
 
 
@@ -132,7 +132,7 @@ pygame.display.set_icon(icon)                   # Set icon
 pygame.display.set_caption("Slay the Swarm")    # Set title
 
 # frame control
-fps = 60
+FPS = 60
 fps_clock = pygame.time.Clock()
 
 # Allow only cretain events (for performance)
@@ -160,7 +160,7 @@ while running:
             running = False
 
     # Update all sprites
-    all_sprites.update()
+    all_sprites.update(FPS)
 
     # All colors will be represented with RGB tuple (r, g, b)
     screen.fill((0, 0, 0))      # fill the screen background with black(0, 0, 0) before drawing all other sprites
@@ -169,4 +169,4 @@ while running:
     all_sprites.draw(screen)
 
     pygame.display.update()     # update all display changes and show them
-    fps_clock.tick(fps)         # make program never run at more than "fps" frames per second
+    fps_clock.tick(FPS)         # make program never run at more than "FPS" frames per second
