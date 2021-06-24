@@ -1,11 +1,7 @@
-import pygame
-from pygame.locals import *
 import math
 import time
 
-
-# Initialize the pygame
-pygame.init()
+from initial_set_load import *
 
 
 def rms(*args):
@@ -271,27 +267,6 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         if not (0 <= self.rect.centerx < 1920 and 0 <= self.rect.centery < 1080):
             self.kill()
 
-
-# Create the screen
-screen_width, screen_height = 1920, 1080
-flags = FULLSCREEN | DOUBLEBUF
-screen = pygame.display.set_mode((screen_width, screen_height), flags, 16)
-
-# Game title and icon
-icon = pygame.image.load("img/icon/icon.png")
-pygame.display.set_icon(icon)                   # Set icon
-pygame.display.set_caption("Slay the Swarm")    # Set title
-
-# frame control
-FPS = 60
-fps_clock = pygame.time.Clock()
-
-# Allow only cretain events (for performance)
-pygame.event.set_allowed([pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
-
-# Load all images
-background_grid_img = pygame.image.load("img/background_grid.png").convert()
-player_img = pygame.image.load("img/character/player.png").convert()
 
 # Define entire field size and initial camera position
 field_width = field_height = 5000
