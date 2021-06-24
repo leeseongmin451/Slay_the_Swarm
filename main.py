@@ -18,6 +18,56 @@ def rms(*args):
     return math.sqrt(sum([x*x for x in args]))
 
 
+# Background class
+class Background:
+    """
+    Background movement control & display class.
+    5000px x 5000px background is splitted into 4 2500px x 2500px subbackground and controlled individually
+    to implement infinitly scrolled background.
+    """
+
+    def __init__(self, image, screen_size, camera):
+        self.image = image
+        self.part_width, self.part_height = self.image.get_size()
+        self.screen_w, self.screen_h = screen_size
+        self.camera_rect = camera
+
+        # Define four part of background
+        self.part00_rect = self.image.get_rect()        # upper left part
+        self.part10_rect = self.image.get_rect()        # upper right part
+        self.part01_rect = self.image.get_rect()        # lower left part
+        self.part11_rect = self.image.get_rect()        # lower right part
+
+    def update(self):
+        """
+        Move the background image at opposite direction of camera(player) movement.
+        Using remainder operation, the part of background too far from camera can be moved in front of the direction of camera movement.
+        :return: None
+        """
+
+        self.part00_rect.centerx = self.part01_rect.centerx = \
+            self.screen_w // 2 + (1.5 * self.part_width - self.camera_rect.centerx) % (2 * self.part_width) - self.part_width
+        self.part10_rect.centerx = self.part11_rect.centerx = \
+            self.screen_w // 2 + (2.5 * self.part_width - self.camera_rect.centerx) % (2 * self.part_width) - self.part_width
+
+        self.part00_rect.centery = self.part10_rect.centery = \
+            self.screen_h // 2 + (1.5 * self.part_height - self.camera_rect.centery) % (2 * self.part_height) - self.part_height
+        self.part01_rect.centery = self.part11_rect.centery = \
+            self.screen_h // 2 + (2.5 * self.part_height - self.camera_rect.centery) % (2 * self.part_height) - self.part_height
+
+    def draw(self, surface):
+        """
+        Display background image at a desired position
+        :param surface: surface to display
+        :return: None
+        """
+
+        surface.blit(self.image, self.part00_rect)
+        surface.blit(self.image, self.part10_rect)
+        surface.blit(self.image, self.part01_rect)
+        surface.blit(self.image, self.part11_rect)
+
+
 # Player sprite
 class Player(pygame.sprite.Sprite):
     """
@@ -40,7 +90,7 @@ class Player(pygame.sprite.Sprite):
         # Position, Speed & acceleration attribute
         # Unit of speed: pixel/sec
         # Unit of acceleration: pixel/sec^2
-        self.x_pos = self.y_pos = 400
+        self.x_pos = self.y_pos = 0
         self.max_speed = 360
         self.speed = 0
         self.max_x_speed = self.max_y_speed = 0
@@ -56,9 +106,10 @@ class Player(pygame.sprite.Sprite):
         self.weapons = [PlayerMinigun()]        # List of all weapons currently equipped by player
         self.target_pos = [0, 0]                # Target position to shoot, equivalent to cursor position
 
-    def update(self, fps):
+    def update(self, camera_topleft, fps):
         """
         Update function for moving player sprite, using weapons per frame
+        :param camera_topleft: for calculating sprite's relative position with respect to camera position
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
@@ -91,14 +142,14 @@ class Player(pygame.sprite.Sprite):
             self.y_speed -= self.acc / fps
 
         # Move the position of player according to current speed (per FPS)
-        # And set the actual position on the screen
+        # And set the actual position on the screen with respect to camera position
         self.x_pos += self.x_speed / fps
         self.y_pos += self.y_speed / fps
-        self.rect.center = [round(self.x_pos), round(self.y_pos)]
+        self.rect.center = [round(self.x_pos - camera_topleft[0]), round(self.y_pos - camera_topleft[1])]
 
         # Use all equipped weapons
         for weapon in self.weapons:
-            weapon.update(self.rect.center, self.target_pos)
+            weapon.update([self.x_pos, self.y_pos], self.target_pos)
 
     def aim(self, target_pos):
         """
@@ -108,6 +159,18 @@ class Player(pygame.sprite.Sprite):
         """
 
         self.target_pos = target_pos
+
+    def get_pos(self):
+        return self.x_pos, self.y_pos
+
+    def set_pos(self, pos):
+        """
+        Setting method : player's position on screen
+        :param pos: position to set
+        :return: None
+        """
+
+        self.x_pos, self.y_pos = pos
 
 
 class PlayerMinigun:
@@ -185,9 +248,10 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # Add this instance to
         all_sprites.add(self)
 
-    def update(self, fps):
+    def update(self, camera_topleft, fps):
         """
         Update function for moving bullet sprite
+        :param camera_topleft: for calculating sprite's relative position with respect to camera position
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
@@ -195,7 +259,7 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # move bullet
         self.x_pos += self.x_speed / fps
         self.y_pos += self.y_speed / fps
-        self.rect.center = [round(self.x_pos), round(self.y_pos)]
+        self.rect.center = [round(self.x_pos - camera_topleft[0]), round(self.y_pos - camera_topleft[1])]
 
         # Kill the bullet sprite when it goes out of screen
         if not (0 <= self.rect.centerx < 1920 and 0 <= self.rect.centery < 1080):
@@ -203,8 +267,9 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
 
 
 # Create the screen
+screen_width, screen_height = 1920, 1080
 flags = FULLSCREEN | DOUBLEBUF
-screen = pygame.display.set_mode((1920, 1080), flags, 16)
+screen = pygame.display.set_mode((screen_width, screen_height), flags, 16)
 
 # Game title and icon
 icon = pygame.image.load("img/icon/icon.png")
@@ -219,13 +284,22 @@ fps_clock = pygame.time.Clock()
 pygame.event.set_allowed([pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
 
 # Load all images
+background_grid_img = pygame.image.load("img/background_grid.png").convert()
 player_img = pygame.image.load("img/character/player.png").convert()
+
+# Define entire field size and initial camera position
+field_width = field_height = 5000
+camera_rect = pygame.Rect(field_width // 4 - screen_width // 2, field_height // 4 - screen_height // 2, screen_width, screen_height)
+
+# Define background
+background = Background(background_grid_img, [screen_width, screen_height], camera_rect)
 
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()     # Contains all sprites subject to update every frame
 
 # Generate player instance and add to sprite group
 player = Player()
+player.set_pos([field_width // 4, field_height // 4])
 all_sprites.add(player)
 
 
@@ -240,14 +314,21 @@ while running:
             running = False
 
     # Get cursor position on the screen
-    curspos = pygame.mouse.get_pos()
+    curspos_screen = pygame.mouse.get_pos()        # Position displayed on screen
+    curspos_field = [curspos_screen[0] + camera_rect.left, curspos_screen[1] + camera_rect.top]     # Actual position on game field
 
     # Update all sprites
-    all_sprites.update(FPS)
-    player.aim(curspos)
+    all_sprites.update(camera_rect.topleft, FPS)
+    player.aim(curspos_field)
 
-    # All colors will be represented with RGB tuple (r, g, b)
-    screen.fill((0, 0, 0))      # fill the screen background with black(0, 0, 0) before drawing all other sprites
+    # Set camera position to player
+    camera_rect.center = player.get_pos()
+
+    # Update background position with respect to screen
+    background.update()
+
+    # Draw background gridlines
+    background.draw(screen)
 
     # Draw all sprites
     all_sprites.draw(screen)
