@@ -31,3 +31,11 @@ background_grid_img = pygame.image.load("img/background_grid.png").convert()
 
 # Load image for Player sprite
 player_img = pygame.image.load("img/character/player.png").convert()
+
+# Load image for StraightLineMover sprite
+straight_line_mover1_img = pygame.image.load("img/character/straight_line_mover1.png").convert()
+straight_line_mover1_hit_img = pygame.image.load("img/character/straight_line_mover1_hit.png").convert()
+straight_line_mover2_img = pygame.image.load("img/character/straight_line_mover2.png").convert()
+straight_line_mover2_hit_img = pygame.image.load("img/character/straight_line_mover2_hit.png").convert()
+straight_line_mover3_img = pygame.image.load("img/character/straight_line_mover3.png").convert()
+straight_line_mover3_hit_img = pygame.image.load("img/character/straight_line_mover3_hit.png").convert()
