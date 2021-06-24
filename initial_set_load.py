@@ -27,7 +27,7 @@ fps_clock = pygame.time.Clock()
 pygame.event.set_allowed([pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
 
 # Load background image
-background_grid_img = pygame.image.load("img/background_grid.png")
+background_grid_img = pygame.image.load("img/background_grid.png").convert()
 
 # Load image for Player sprite
-player_img = pygame.image.load("img/character/player.png")
+player_img = pygame.image.load("img/character/player.png").convert()
