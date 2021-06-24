@@ -74,8 +74,11 @@ class Player(pygame.sprite.Sprite):
     A player class which user can control
     """
 
-    def __init__(self):
+    def __init__(self, camera):
         pygame.sprite.Sprite.__init__(self)
+
+        # camera attribute following the player
+        self.camera_rect = camera
 
         # HP & MP attributes
         self.full_hp = 100
@@ -100,16 +103,15 @@ class Player(pygame.sprite.Sprite):
         # Image & rect attributes
         self.image = pygame.transform.scale(player_img, [30, 30])
         self.rect = self.image.get_rect()
-        self.rect.center = [self.x_pos, self.y_pos]
+        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Attributes for weapons
-        self.weapons = [PlayerMinigun()]        # List of all weapons currently equipped by player
+        self.weapons = [PlayerMinigun(self.camera_rect)]        # List of all weapons currently equipped by player
         self.target_pos = [0, 0]                # Target position to shoot, equivalent to cursor position
 
-    def update(self, camera_topleft, fps):
+    def update(self, fps):
         """
         Update function for moving player sprite, using weapons per frame
-        :param camera_topleft: for calculating sprite's relative position with respect to camera position
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
@@ -145,7 +147,7 @@ class Player(pygame.sprite.Sprite):
         # And set the actual position on the screen with respect to camera position
         self.x_pos += self.x_speed / fps
         self.y_pos += self.y_speed / fps
-        self.rect.center = [round(self.x_pos - camera_topleft[0]), round(self.y_pos - camera_topleft[1])]
+        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Use all equipped weapons
         for weapon in self.weapons:
@@ -180,7 +182,9 @@ class PlayerMinigun:
     This is an abstract sprite and invisible on the screen.
     """
 
-    def __init__(self):
+    def __init__(self, camera):
+        self.camera_rect = camera               # camera attribute to give as a parameter of bullet class
+
         self.level = 1                          # Level of this weapon
         self.pos = [0, 0]                       # Will follow player's position
         self.target_pos = [0, 0]                # Will follow cursor position
@@ -218,7 +222,7 @@ class PlayerMinigun:
         """
 
         if self.level == 1:
-            PlayerNormalBullet(self.pos, 600, aiming_angle, 1)
+            PlayerNormalBullet(self.camera_rect, self.pos, 600, aiming_angle, 1)
 
 
 class PlayerNormalBullet(pygame.sprite.Sprite):
@@ -228,8 +232,11 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
     Killed(disappears) when collided with enemy sprites and gives damage to them.
     """
 
-    def __init__(self, fired_pos, speed, angle, power):
+    def __init__(self, camera, fired_pos, speed, angle, power):
         pygame.sprite.Sprite.__init__(self)
+
+        # camera attribute to calculate relative position from screen
+        self.camera_rect = camera
 
         # Position & speed attributes
         self.x_pos, self.y_pos = fired_pos          # Initial position
@@ -240,7 +247,7 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.image = pygame.Surface([5, 5])
         self.image.fill((0, 255, 255))
         self.rect = self.image.get_rect()
-        self.rect.center = [self.x_pos, self.y_pos]
+        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Damage dealt to enemy
         self.power = power
@@ -248,10 +255,9 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # Add this instance to
         all_sprites.add(self)
 
-    def update(self, camera_topleft, fps):
+    def update(self, fps):
         """
         Update function for moving bullet sprite
-        :param camera_topleft: for calculating sprite's relative position with respect to camera position
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
@@ -259,7 +265,7 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # move bullet
         self.x_pos += self.x_speed / fps
         self.y_pos += self.y_speed / fps
-        self.rect.center = [round(self.x_pos - camera_topleft[0]), round(self.y_pos - camera_topleft[1])]
+        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Kill the bullet sprite when it goes out of screen
         if not (0 <= self.rect.centerx < 1920 and 0 <= self.rect.centery < 1080):
@@ -298,7 +304,7 @@ background = Background(background_grid_img, [screen_width, screen_height], came
 all_sprites = pygame.sprite.Group()     # Contains all sprites subject to update every frame
 
 # Generate player instance and add to sprite group
-player = Player()
+player = Player(camera_rect)
 player.set_pos([field_width // 4, field_height // 4])
 all_sprites.add(player)
 
@@ -318,7 +324,7 @@ while running:
     curspos_field = [curspos_screen[0] + camera_rect.left, curspos_screen[1] + camera_rect.top]     # Actual position on game field
 
     # Update all sprites
-    all_sprites.update(camera_rect.topleft, FPS)
+    all_sprites.update(FPS)
     player.aim(curspos_field)
 
     # Set camera position to player
