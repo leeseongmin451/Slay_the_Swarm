@@ -1,5 +1,6 @@
 import time
 import math
+import random
 
 import pygame.sprite
 
@@ -215,9 +216,52 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
             self.kill()
 
 
+class StraightLineMover1(pygame.sprite.Sprite):
+    """
+    Enemy sprite
+    Moves only through stright line, does not attack player.
+    """
+
+    def __init__(self, camera):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.camera_rect = camera
+
+        self.size = [20, 20]
+        self.norm_image = pygame.transform.scale(straight_line_mover1_img, self.size)
+        self.hit_image = pygame.transform.scale(straight_line_mover1_hit_img, self.size)
+
+        self.image = self.norm_image
+        self.rect = self.image.get_rect()
+
+        self.hp = 1
+
+        self.x_pos = self.y_pos = 0         # needs to be random
+        self.speed = random.uniform(300, 500)
+        self.direction = random.uniform(-math.pi, math.pi)
+        self.x_speed = self.speed * math.cos(self.direction)
+        self.y_speed = self.speed * math.sin(self.direction)
+
+        all_sprites.add(self)
+        all_enemies.add(self)
+
+    def update(self, fps):
+        self.x_pos += self.x_speed
+        self.y_pos += self.y_speed
+
+    def get_damage(self, damage):
+        self.hp -= damage
+        if self.hp <= 0:
+            self.death()
+
+    def death(self):
+        pass
+
+
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()             # Contains all sprites subject to update every frame
 
 # Generate additional sprite groups to specify drawing order
 player_group = pygame.sprite.Group()            # Only player sprite will be added here
 player_projectiles = pygame.sprite.Group()      # All projectiles shot from player
+all_enemies = pygame.sprite.Group()             # Sprite group for all enemy sprites

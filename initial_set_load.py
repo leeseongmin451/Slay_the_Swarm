@@ -6,6 +6,7 @@ import pygame
 from pygame.locals import *
 
 
+# Initialize pygame
 pygame.init()
 
 
@@ -32,7 +33,14 @@ background_grid_img = pygame.image.load("img/background_grid.png").convert()
 # Load image for Player sprite
 player_img = pygame.image.load("img/character/player.png").convert()
 
-# Load image for StraightLineMover sprite
+# Load 64 image frames for animating spawneffect
+spawneffect_animation = []
+for i in range(8):
+    for j in range(8):
+        new_frame = pygame.image.load("img/spawneffect/spawneffect_{}_{}.png".format(i, j)).convert()
+        spawneffect_animation.append(new_frame)
+
+# Load images for StraightLineMover sprites
 straight_line_mover1_img = pygame.image.load("img/character/straight_line_mover1.png").convert()
 straight_line_mover1_hit_img = pygame.image.load("img/character/straight_line_mover1_hit.png").convert()
 straight_line_mover2_img = pygame.image.load("img/character/straight_line_mover2.png").convert()
