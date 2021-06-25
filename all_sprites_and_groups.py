@@ -1,6 +1,8 @@
 import time
 import math
 
+import pygame.sprite
+
 from initial_set_load import *
 
 
@@ -44,6 +46,10 @@ class Player(pygame.sprite.Sprite):
         # Attributes for weapons
         self.weapons = [PlayerMinigun(self.camera_rect)]        # List of all weapons currently equipped by player
         self.target_pos = [0, 0]                # Target position to shoot, equivalent to cursor position
+
+        # Automatically add self to sprite groups
+        all_sprites.add(self)
+        player_group.add(self)
 
     def update(self, fps):
         """
@@ -188,8 +194,9 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # Damage dealt to enemy
         self.power = power
 
-        # Add this instance to
+        # Automatically add self to sprite groups
         all_sprites.add(self)
+        player_projectiles.add(self)
 
     def update(self, fps):
         """
@@ -209,4 +216,8 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
 
 
 # Generate sprite groups
-all_sprites = pygame.sprite.Group()     # Contains all sprites subject to update every frame
+all_sprites = pygame.sprite.Group()             # Contains all sprites subject to update every frame
+
+# Generate additional sprite groups to specify drawing order
+player_group = pygame.sprite.Group()            # Only player sprite will be added here
+player_projectiles = pygame.sprite.Group()      # All projectiles shot from player

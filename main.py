@@ -71,7 +71,6 @@ background = Background(background_grid_img, [screen_width, screen_height], came
 # Generate player instance and add to sprite group
 player = Player(camera_rect)
 player.set_pos([field_width // 4, field_height // 4])
-all_sprites.add(player)
 
 
 # Main game loop
@@ -102,7 +101,8 @@ while running:
     background.draw(screen)
 
     # Draw all sprites
-    all_sprites.draw(screen)
+    player_group.draw(screen)
+    player_projectiles.draw(screen)
 
     pygame.display.update()     # update all display changes and show them
     fps_clock.tick(FPS)         # make program never run at more than "FPS" frames per second
