@@ -61,16 +61,16 @@ class Background:
         surface.blit(self.image, self.part11_rect)
 
 
-# Define entire field size and initial camera position
-field_width = field_height = 5000
-camera_rect = pygame.Rect(field_width // 4 - screen_width // 2, field_height // 4 - screen_height // 2, screen_width, screen_height)
-
 # Define background
 background = Background(background_grid_img, [screen_width, screen_height], camera_rect)
 
 # Generate player instance and add to sprite group
 player = Player(camera_rect)
 player.set_pos([field_width // 4, field_height // 4])
+
+# Generate 120 StraightLineMover1 sprites for test
+for _ in range(120):
+    StraightLineMover1(camera_rect)
 
 
 # Main game loop
@@ -101,8 +101,10 @@ while running:
     background.draw(screen)
 
     # Draw all sprites
-    player_group.draw(screen)
-    player_projectiles.draw(screen)
+    spawneffect_group.draw(screen)      # Draw all spawneffects
+    player_group.draw(screen)           # Draw player
+    all_enemies.draw(screen)            # Draw all enemies
+    player_projectiles.draw(screen)     # Draw all projectiles shot from player
 
     pygame.display.update()     # update all display changes and show them
     fps_clock.tick(FPS)         # make program never run at more than "FPS" frames per second

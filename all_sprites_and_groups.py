@@ -216,6 +216,62 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
             self.kill()
 
 
+class SpawnEffect(pygame.sprite.Sprite):
+    """
+    An effect sprite generated right before an enemy appears.
+    """
+
+    def __init__(self, camera, pos, size):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Camera attribute to calculate relative position from screen
+        self.camera_rect = camera
+
+        # Set position
+        self.x_pos, self.y_pos = pos        # Spawneffect's field position given by sprite to be generated
+
+        # Size & image attributes
+        self.size = size            # Spawneffect's size given by sprite to be generated
+        self.image_frame_list = spawneffect_animation[::(60 // FPS)]        # Get image frames according to fps
+        self.n_frames = len(self.image_frame_list)                          # Number of frames
+        self.current_frame_num = 0                                          # Variable for counting frames
+        self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
+        self.rect = self.image.get_rect()
+
+        # Calculate the spawneffect's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
+
+        # Attribute for check whether spawning animation is over
+        # This attribute will be referenced by the enemy sprite generated from this spawneffect.
+        # Enemy sprite will be actually displayed and move/attack only if value of this attribute is True.
+        self.complete = False
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        spawneffect_group.add(self)
+
+    def update(self, fps):
+        """
+        Update(change) image for spawning animation at each frame.
+        :return: None
+        """
+
+        # Calculate the spawneffect's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
+
+        # Update image at each frame
+        if self.current_frame_num < self.n_frames:
+            # Update image if frames to display remains
+            self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)
+            self.current_frame_num += 1     # Increment frame number
+        else:
+            # Kill this effect if no new image to display remains
+            self.complete = True
+            self.kill()
+
+
 class StraightLineMover1(pygame.sprite.Sprite):
     """
     Enemy sprite
@@ -225,37 +281,76 @@ class StraightLineMover1(pygame.sprite.Sprite):
     def __init__(self, camera):
         pygame.sprite.Sprite.__init__(self)
 
+        # Camera attribute to calculate relative position from screen
         self.camera_rect = camera
 
-        self.size = [20, 20]
-        self.norm_image = pygame.transform.scale(straight_line_mover1_img, self.size)
-        self.hit_image = pygame.transform.scale(straight_line_mover1_hit_img, self.size)
-
-        self.image = self.norm_image
-        self.rect = self.image.get_rect()
-
+        # Full HP of StraightLineMover1 instance
         self.hp = 1
 
-        self.x_pos = self.y_pos = 0         # needs to be random
-        self.speed = random.uniform(300, 500)
-        self.direction = random.uniform(-math.pi, math.pi)
-        self.x_speed = self.speed * math.cos(self.direction)
-        self.y_speed = self.speed * math.sin(self.direction)
+        # Position and speed attributes
+        self.x_pos = random.randrange(0, field_width)           # Generating position is completely random in entire field
+        self.y_pos = random.randrange(0, field_height)          # Same as x_pos
+        self.speed = random.uniform(300, 500)                   # Moves at a fixed, random speed between 300~500pixels/sec
+        self.direction = random.uniform(-math.pi, math.pi)      # Moves towards a fixed, random direction in radians
+        self.x_speed = self.speed * math.cos(self.direction)    # Calculate x-direction speed using trigonometry
+        self.y_speed = self.speed * math.sin(self.direction)    # Same as x_speed
 
+        # Size & image attributes
+        self.size = [100, 100]
+        self.norm_image = pygame.transform.scale(straight_line_mover1_img, self.size)       # Normal image of StraightLineMover1 instance
+        self.hit_image = pygame.transform.scale(straight_line_mover1_hit_img, self.size)    # Image displayed only when got damaged, slightly brighter than normal one
+        self.image = self.norm_image            # Initially set current image to normal image
+        self.rect = self.image.get_rect()
+
+        # Calculate the spawneffect's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
+
+        # Add this sprite to sprite groups
         all_sprites.add(self)
-        all_enemies.add(self)
+
+        # Attribute to check whether spawneffect animation is complete
+        self.spawning = True
+        self.spawneffect = SpawnEffect(self.camera_rect, [self.x_pos, self.y_pos], self.size)   # Generate spawneffect
 
     def update(self, fps):
-        self.x_pos += self.x_speed
-        self.y_pos += self.y_speed
+        """
+        Move sprite by updating position. Does nothing until spawneffect animation ends.
+        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :return: None
+        """
+
+        # Does nothing until spawneffect animation ends
+        if self.spawning:
+            if self.spawneffect.complete:
+                self.spawning = False
+                all_enemies.add(self)       # Add sprite to enemy sprite group to draw
+        else:
+            # Update position
+            self.x_pos += self.x_speed / fps
+            self.y_pos += self.y_speed / fps
+
+        # Calculate the spawneffect's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
 
     def get_damage(self, damage):
+        """
+        Reduce HP when collided with projectile from player(attacked by player). Call death function when HP <= 0
+        :param damage: power of the projectile
+        :return: None
+        """
+
         self.hp -= damage
         if self.hp <= 0:
             self.death()
 
     def death(self):
-        pass
+        """
+        Generate explosion effect and coins/item, then delete sprite
+        :return: None
+        """
+        self.kill()
 
 
 # Generate sprite groups
@@ -264,4 +359,5 @@ all_sprites = pygame.sprite.Group()             # Contains all sprites subject t
 # Generate additional sprite groups to specify drawing order
 player_group = pygame.sprite.Group()            # Only player sprite will be added here
 player_projectiles = pygame.sprite.Group()      # All projectiles shot from player
+spawneffect_group = pygame.sprite.Group()       # Sprite group for all spawn effects
 all_enemies = pygame.sprite.Group()             # Sprite group for all enemy sprites
