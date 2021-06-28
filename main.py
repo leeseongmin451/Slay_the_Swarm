@@ -1,19 +1,6 @@
 from all_sprites_and_groups import *
 
 
-def get_distance(pos1, pos2):
-    """
-    Calculate distance between two given (x, y) coordinate points usin Pythagorean theoram
-    :param pos1: first point
-    :param pos2: second point
-    :return: distance of two points
-    """
-
-    x_difference = pos1[0] - pos2[0]
-    y_difference = pos1[1] - pos2[1]
-    return math.sqrt(x_difference*x_difference + y_difference*y_difference)
-
-
 # Background class
 class Background:
     """

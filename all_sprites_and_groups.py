@@ -7,6 +7,19 @@ import pygame.sprite
 from initial_set_load import *
 
 
+def get_distance(pos1, pos2):
+    """
+    Calculate distance between two given (x, y) coordinate points usin Pythagorean theoram
+    :param pos1: first point
+    :param pos2: second point
+    :return: distance of two points
+    """
+
+    x_difference = pos1[0] - pos2[0]
+    y_difference = pos1[1] - pos2[1]
+    return math.sqrt(x_difference*x_difference + y_difference*y_difference)
+
+
 # Player sprite
 class Player(pygame.sprite.Sprite):
     """
@@ -211,8 +224,8 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.y_pos += self.y_speed / fps
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
-        # Kill the bullet sprite when it goes out of screen
-        if not (0 <= self.rect.centerx < 1920 and 0 <= self.rect.centery < 1080):
+        # Kill the bullet sprite when it goes too far from the center of screen
+        if get_distance([screen_width // 2, screen_height // 2], self.rect.center) > 1500:
             self.kill()
 
 
