@@ -226,6 +226,7 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
             # Damage value will be random, but has current power as mean value.
             damage = self.power * random.uniform(0.5, 1.5)
             enemy.get_damage(damage)
+            HitEffect(self.camera_rect, [self.x_pos, self.y_pos])       # Generate hiteffect
             self.kill()                     # Delete the bullet after collision
 
         # Move bullet
@@ -291,6 +292,56 @@ class SpawnEffect(pygame.sprite.Sprite):
         else:
             # Kill this effect if no new image to display remains
             self.complete = True
+            self.kill()
+
+
+class HitEffect(pygame.sprite.Sprite):
+    """
+    An effect sprite generated when a bullet collide with enemy sprite
+    """
+
+    def __init__(self, camera, pos):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Camera attribute to calculate relative position from screen
+        self.camera_rect = camera
+
+        # Set position
+        self.x_pos, self.y_pos = pos        # Hiteffect's field position given by bullet collided with enemy sprite
+
+        # Size & image attributes
+        self.size = [48, 48]
+        self.image_frame_list = hiteffect_animation[::(60 // FPS)]          # Get image frames according to fps
+        self.n_frames = len(self.image_frame_list)                          # Number of frames
+        self.current_frame_num = 0                                          # Variable for counting frames
+        self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
+        self.rect = self.image.get_rect()
+
+        # Calculate the hiteffect's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + field_width // 2) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery + field_height // 2) % field_height + screen_height // 2 - field_height // 2
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        hiteffect_group.add(self)
+
+    def update(self, fps):
+        """
+        Update(change) image for hitting animation at each frame.
+        :return: None
+        """
+
+        # Calculate the hiteffect's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + field_width // 2) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery + field_height // 2) % field_height + screen_height // 2 - field_height // 2
+
+        # Update image at each frame
+        if self.current_frame_num < self.n_frames:
+            # Update image if frames to display remains
+            self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)
+            self.current_frame_num += 1     # Increment frame number
+        else:
+            # Kill this effect if no new image to display remains
             self.kill()
 
 
@@ -408,4 +459,5 @@ all_sprites = pygame.sprite.Group()             # Contains all sprites subject t
 player_group = pygame.sprite.Group()            # Only player sprite will be added here
 player_projectiles = pygame.sprite.Group()      # All projectiles shot from player
 spawneffect_group = pygame.sprite.Group()       # Sprite group for all spawn effects
+hiteffect_group = pygame.sprite.Group()         # Sprite group for all hit effects
 all_enemies = pygame.sprite.Group()             # Sprite group for all enemy sprites

@@ -45,6 +45,13 @@ for i in range(8):
         new_frame.set_colorkey((0, 0, 0))           # Set black background of all image frames as transparent
         spawneffect_animation.append(new_frame)
 
+# Load 9 image frames for animating hiteffect
+hiteffect_animation = []
+for i in range(9):
+    new_frame = pygame.image.load("img/hiteffect/hit_000{}.png".format(i)).convert_alpha()
+    new_frame.set_colorkey((0, 0, 0))               # Set black background of all image frames as transparent
+    hiteffect_animation.append(new_frame)
+
 # Load images for StraightLineMover sprites
 straight_line_mover1_img = pygame.image.load("img/character/straight_line_mover1.png").convert()
 straight_line_mover1_hit_img = pygame.image.load("img/character/straight_line_mover1_hit.png").convert()
