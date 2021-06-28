@@ -306,8 +306,12 @@ class StraightLineMover1(pygame.sprite.Sprite):
         # Camera attribute to calculate relative position from screen
         self.camera_rect = camera
 
-        # Full HP of StraightLineMover1 instance
-        self.hp = 1
+        # Attributes related to HP and dealing with damage event
+        self.hp = 1                             # Max HP for StraightLineMover1 sprite
+        self.got_damaged = False                # Indicates whether got damaged
+        self.blink_count = 6                    # The two images will take turn being displayed 3 times for each
+        self.frames_per_blink = FPS // 30       # Blinking animation will be displayed at 30fps
+        self.current_damage_animation_frame = 0
 
         # Position and speed attributes
         self.x_pos = random.randrange(0, field_width)           # Generating position is completely random in entire field
@@ -321,7 +325,9 @@ class StraightLineMover1(pygame.sprite.Sprite):
         self.size = [30, 30]
         self.norm_image = pygame.transform.scale(straight_line_mover1_img, self.size)       # Normal image of StraightLineMover1 instance
         self.hit_image = pygame.transform.scale(straight_line_mover1_hit_img, self.size)    # Image displayed only when got damaged, slightly brighter than normal one
-        self.image = self.norm_image            # Initially set current image to normal image
+        self.image_list = [self.norm_image, self.hit_image]                                 # Image list for faster image selection
+        self.current_imagenum = 0
+        self.image = self.image_list[self.current_imagenum]                                 # Initially set current image to normal image
         self.rect = self.image.get_rect()
 
         # Calculate the spawneffect's actual position on screen using camera center position
@@ -348,6 +354,21 @@ class StraightLineMover1(pygame.sprite.Sprite):
                 self.spawning = False
                 all_enemies.add(self)       # Add sprite to enemy sprite group to draw
         else:
+            # Deal with damage event
+            if self.got_damaged:
+                if self.current_damage_animation_frame % self.frames_per_blink == 0:
+                    self.current_imagenum = (self.current_imagenum + 1) % 2     # Change imagenum to 0 or 1
+                    self.blink_count -= 1                                       # Reduce remaining blinking counts
+                    self.image = self.image_list[self.current_imagenum]     # Set the image according to imagenum
+
+                self.current_damage_animation_frame += 1                    # Count frames passed from got damaged
+
+                # If blinking animation ends
+                if self.blink_count == 0:
+                    self.current_imagenum = 0       # Set the image to normal one
+                    self.got_damaged = False        # No blinking until getting another damage
+                    self.image = self.image_list[self.current_imagenum]     # Set the image according to imagenum
+
             # Update position
             self.x_pos += self.x_speed / fps
             self.y_pos += self.y_speed / fps
@@ -363,6 +384,11 @@ class StraightLineMover1(pygame.sprite.Sprite):
         :return: None
         """
 
+        # Start blinking animation and initialize blink count
+        self.got_damaged = True
+        self.blink_count = 6
+
+        # Apply damage by reducing HP, or call death() if HP <=
         self.hp -= damage
         if self.hp <= 0:
             self.death()
