@@ -296,7 +296,7 @@ class StraightLineMover1(pygame.sprite.Sprite):
         self.y_speed = self.speed * math.sin(self.direction)    # Same as x_speed
 
         # Size & image attributes
-        self.size = [100, 100]
+        self.size = [30, 30]
         self.norm_image = pygame.transform.scale(straight_line_mover1_img, self.size)       # Normal image of StraightLineMover1 instance
         self.hit_image = pygame.transform.scale(straight_line_mover1_hit_img, self.size)    # Image displayed only when got damaged, slightly brighter than normal one
         self.image = self.norm_image            # Initially set current image to normal image

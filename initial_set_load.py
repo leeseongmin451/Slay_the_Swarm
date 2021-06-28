@@ -42,6 +42,7 @@ spawneffect_animation = []
 for i in range(8):
     for j in range(8):
         new_frame = pygame.image.load("img/spawneffect/spawneffect_{}_{}.png".format(i, j)).convert()
+        new_frame.set_colorkey((0, 0, 0))           # Set black background of all image frames as transparent
         spawneffect_animation.append(new_frame)
 
 # Load images for StraightLineMover sprites
