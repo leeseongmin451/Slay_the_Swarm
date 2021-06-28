@@ -239,8 +239,8 @@ class SpawnEffect(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Calculate the spawneffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
 
         # Attribute for check whether spawning animation is over
         # This attribute will be referenced by the enemy sprite generated from this spawneffect.
@@ -258,8 +258,8 @@ class SpawnEffect(pygame.sprite.Sprite):
         """
 
         # Calculate the spawneffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -303,8 +303,8 @@ class StraightLineMover1(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Calculate the spawneffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -331,8 +331,8 @@ class StraightLineMover1(pygame.sprite.Sprite):
             self.y_pos += self.y_speed / fps
 
         # Calculate the spawneffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
 
     def get_damage(self, damage):
         """
