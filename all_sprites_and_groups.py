@@ -219,12 +219,21 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         :return: None
         """
 
-        # move bullet
+        # Check collision with any of enemy sprites
+        collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
+        if collided_enemies:                # If one or more sprite collided with bullet
+            enemy = collided_enemies[0]     # Only one enemy sprite will get damaged (Because bullet cannot deal splash damage).
+            # Damage value will be random, but has current power as mean value.
+            damage = self.power * random.uniform(0.5, 1.5)
+            enemy.get_damage(damage)
+            self.kill()                     # Delete the bullet after collision
+
+        # Move bullet
         self.x_pos += self.x_speed / fps
         self.y_pos += self.y_speed / fps
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
-        # Kill the bullet sprite when it goes too far from the center of screen
+        # Delete the bullet sprite when it goes too far from the center of screen
         if get_distance([screen_width // 2, screen_height // 2], self.rect.center) > 1500:
             self.kill()
 
