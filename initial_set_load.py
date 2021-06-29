@@ -39,6 +39,13 @@ background_grid_img = pygame.image.load("img/background_grid.png").convert()
 # Load image for Player sprite
 player_img = pygame.image.load("img/character/player.png").convert()
 
+# Load image for PlayerNormalBullet sprite
+player_normal_bullet_animation = []
+for i in range(4):
+    new_frame = pygame.image.load("img/projectiles/player_normal_bullet{}.png".format(i // 2)).convert()
+    new_frame.set_colorkey((255, 255, 255))         # Make white background invisible(transparent)
+    player_normal_bullet_animation.append(new_frame)
+
 # Load 64 image frames for animating spawneffect
 spawneffect_animation = []
 for i in range(8):

@@ -200,8 +200,21 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.y_speed = speed * math.sin(angle)
 
         # Image & rect attributes
-        self.image = pygame.Surface([5, 5])
-        self.image.fill((0, 255, 255))
+        self.size = [20, 10]
+        self.image_frame_list = player_normal_bullet_animation[::(60 // FPS)]        # Get image frames according to fps
+        self.n_frames = len(self.image_frame_list)                          # Number of frames
+
+        # Rotate image towards moving direction
+        for n in range(self.n_frames):
+            rotated_image = pygame.transform.rotate(self.image_frame_list[n], -angle * 180 / math.pi)
+            self.image_frame_list[n] = rotated_image
+
+        # Get new rect object from rotated image
+        rotated_rect = self.image_frame_list[0].get_rect()
+        self.rotated_image_w, self.rotated_image_h = rotated_rect.w, rotated_rect.h
+
+        self.current_frame_num = 0                                          # Variable for counting frames
+        self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], [self.rotated_image_w // 2, self.rotated_image_h // 2])   # Get first image to display
         self.rect = self.image.get_rect()
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
@@ -218,6 +231,10 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
+
+        # Blink the image of bullet
+        self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num % self.n_frames], [self.rotated_image_w // 2, self.rotated_image_h // 2])
+        self.current_frame_num += 1
 
         # Check collision with any of enemy sprites
         collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
