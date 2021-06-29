@@ -345,6 +345,63 @@ class HitEffect(pygame.sprite.Sprite):
             self.kill()
 
 
+class Explosion(pygame.sprite.Sprite):
+    """
+    An effect sprite generated when a enemy sprite killed or large projectiles (cannonballs, rockets, etc) exploded
+    """
+
+    def __init__(self, camera, pos, size):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Camera attribute to calculate relative position from screen
+        self.camera_rect = camera
+
+        # Set position
+        self.x_pos, self.y_pos = pos        # Explosion's field position given by bullet collided with enemy sprite
+
+        # Size & image attributes
+        self.size = size
+        # Select right size of explosion animation according to size
+        if self.size[0] < 64:
+            self.image_frame_list = random.choice(explosion_animation_list_small)[::(60 // FPS)]        # Get image frames according to fps
+        elif self.size[0] < 128:
+            self.image_frame_list = random.choice(explosion_animation_list_medium)[::(60 // FPS)]       # Get image frames according to fps
+        else:
+            self.image_frame_list = random.choice(explosion_animation_list_large)[::(60 // FPS)]        # Get image frames according to fps
+        self.n_frames = len(self.image_frame_list)                          # Number of frames
+        self.current_frame_num = 0                                          # Variable for counting frames
+        self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
+        self.rect = self.image.get_rect()
+
+        # Calculate the explosion's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        explosion_group.add(self)
+
+    def update(self, fps):
+        """
+        Update(change) image for hitting animation at each frame.
+        :return: None
+        """
+
+        # Calculate the explosions's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+
+        # Update image at each frame
+        if self.current_frame_num < self.n_frames:
+            # Update image if frames to display remains
+            self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)
+            self.current_frame_num += 1     # Increment frame number
+        else:
+            # Kill this effect if no new image to display remains
+            self.kill()
+
+
+
 class StraightLineMover1(pygame.sprite.Sprite):
     """
     Enemy sprite
@@ -439,7 +496,7 @@ class StraightLineMover1(pygame.sprite.Sprite):
         self.got_damaged = True
         self.blink_count = 6
 
-        # Apply damage by reducing HP, or call death() if HP <=
+        # Apply damage by reducing HP, or call death() if HP <= 0
         self.hp -= damage
         if self.hp <= 0:
             self.death()
@@ -449,6 +506,10 @@ class StraightLineMover1(pygame.sprite.Sprite):
         Generate explosion effect and coins/item, then delete sprite
         :return: None
         """
+
+        # Generate explosion animation twice as big as self, then killed
+        explode_size = [self.size[0] * 2, self.size[1] * 2]
+        Explosion(self.camera_rect, [self.x_pos, self.y_pos], explode_size)
         self.kill()
 
 
@@ -460,4 +521,5 @@ player_group = pygame.sprite.Group()            # Only player sprite will be add
 player_projectiles = pygame.sprite.Group()      # All projectiles shot from player
 spawneffect_group = pygame.sprite.Group()       # Sprite group for all spawn effects
 hiteffect_group = pygame.sprite.Group()         # Sprite group for all hit effects
+explosion_group = pygame.sprite.Group()         # Sprite group for all explosions
 all_enemies = pygame.sprite.Group()             # Sprite group for all enemy sprites

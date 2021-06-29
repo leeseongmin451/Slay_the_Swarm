@@ -5,6 +5,8 @@ Python file for initializing screen and loading all images needed
 import pygame
 from pygame.locals import *
 
+import os.path
+
 
 # Initialize pygame
 pygame.init()
@@ -51,6 +53,46 @@ for i in range(9):
     new_frame = pygame.image.load("img/hiteffect/hit_000{}.png".format(i)).convert_alpha()
     new_frame.set_colorkey((0, 0, 0))               # Set black background of all image frames as transparent
     hiteffect_animation.append(new_frame)
+
+# Load image frames for animating explosions
+explosion_animation_list_small = []         # For 32x32 images
+for i in [5, 7]:
+    explosion_animation = []
+    j = 0
+    while True:
+        path = "img/explosion/expl_{:0>2}_{:0>4}.png".format(i, j)
+        if not os.path.exists(path):
+            break
+        new_frame = pygame.image.load(path).convert_alpha()
+        explosion_animation.append(new_frame)
+        j += 1
+    explosion_animation_list_small.append(explosion_animation)
+
+explosion_animation_list_medium = []        # For 64x64 images
+for i in [1, 2, 3, 4, 6, 8]:
+    explosion_animation = []
+    j = 0
+    while True:
+        path = "img/explosion/expl_{:0>2}_{:0>4}.png".format(i, j)
+        if not os.path.exists(path):
+            break
+        new_frame = pygame.image.load(path).convert_alpha()
+        explosion_animation.append(new_frame)
+        j += 1
+    explosion_animation_list_medium.append(explosion_animation)
+
+explosion_animation_list_large = []        # For 96x96 and 128x128 images
+for i in [9, 10, 11]:
+    explosion_animation = []
+    j = 0
+    while True:
+        path = "img/explosion/expl_{:0>2}_{:0>4}.png".format(i, j)
+        if not os.path.exists(path):
+            break
+        new_frame = pygame.image.load(path).convert_alpha()
+        explosion_animation.append(new_frame)
+        j += 1
+    explosion_animation_list_large.append(explosion_animation)
 
 # Load images for StraightLineMover sprites
 straight_line_mover1_img = pygame.image.load("img/character/straight_line_mover1.png").convert()

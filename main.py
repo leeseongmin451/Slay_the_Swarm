@@ -96,6 +96,7 @@ while running:
     all_enemies.draw(screen)            # Draw all enemies
     player_projectiles.draw(screen)     # Draw all projectiles shot from player
     hiteffect_group.draw(screen)        # Draw all hiteffects
+    explosion_group.draw(screen)        # Draw all explosions
 
     pygame.display.update()     # update all display changes and show them
     fps_clock.tick(FPS)         # make program never run at more than "FPS" frames per second
