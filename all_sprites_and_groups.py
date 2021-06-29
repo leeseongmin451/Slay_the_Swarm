@@ -378,14 +378,16 @@ class Explosion(pygame.sprite.Sprite):
 
         # Size & image attributes
         self.size = size
+        self.n_frames = 0
         # Select right size of explosion animation according to size
-        if self.size[0] < 64:
-            self.image_frame_list = random.choice(explosion_animation_list_small)[::(60 // FPS)]        # Get image frames according to fps
-        elif self.size[0] < 128:
-            self.image_frame_list = random.choice(explosion_animation_list_medium)[::(60 // FPS)]       # Get image frames according to fps
-        else:
-            self.image_frame_list = random.choice(explosion_animation_list_large)[::(60 // FPS)]        # Get image frames according to fps
-        self.n_frames = len(self.image_frame_list)                          # Number of frames
+        while not self.n_frames:
+            if self.size[0] < 128:
+                self.image_frame_list = random.choice(explosion_animation_list_small)[::(60 // FPS)]        # Get image frames according to fps
+            elif self.size[0] < 256:
+                self.image_frame_list = random.choice(explosion_animation_list_medium)[::(60 // FPS)]       # Get image frames according to fps
+            else:
+                self.image_frame_list = random.choice(explosion_animation_list_large)[::(60 // FPS)]        # Get image frames according to fps
+            self.n_frames = len(self.image_frame_list)                          # Number of frames
         self.current_frame_num = 0                                          # Variable for counting frames
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
         self.rect = self.image.get_rect()
@@ -418,21 +420,20 @@ class Explosion(pygame.sprite.Sprite):
             self.kill()
 
 
-
-class StraightLineMover1(pygame.sprite.Sprite):
+class StraightLineMover(pygame.sprite.Sprite):
     """
     Enemy sprite
     Moves only through stright line, does not attack player.
     """
 
-    def __init__(self, camera):
+    def __init__(self, camera, hp, speed, size, norm_image, hit_image):
         pygame.sprite.Sprite.__init__(self)
 
         # Camera attribute to calculate relative position from screen
         self.camera_rect = camera
 
         # Attributes related to HP and dealing with damage event
-        self.hp = 1                             # Max HP for StraightLineMover1 sprite
+        self.hp = hp                            # Max HP for StraightLineMover sprite
         self.got_damaged = False                # Indicates whether got damaged
         self.blink_count = 6                    # The two images will take turn being displayed 3 times for each
         self.frames_per_blink = FPS // 30       # Blinking animation will be displayed at 30fps
@@ -441,18 +442,18 @@ class StraightLineMover1(pygame.sprite.Sprite):
         # Position and speed attributes
         self.x_pos = random.randrange(0, field_width)           # Generating position is completely random in entire field
         self.y_pos = random.randrange(0, field_height)          # Same as x_pos
-        self.speed = random.uniform(300, 500)                   # Moves at a fixed, random speed between 300~500pixels/sec
+        self.speed = speed                                      # Moves at a fixed random speed
         self.direction = random.uniform(-math.pi, math.pi)      # Moves towards a fixed, random direction in radians
         self.x_speed = self.speed * math.cos(self.direction)    # Calculate x-direction speed using trigonometry
         self.y_speed = self.speed * math.sin(self.direction)    # Same as x_speed
 
         # Size & image attributes
-        self.size = [30, 30]
-        self.norm_image = pygame.transform.scale(straight_line_mover1_img, self.size)       # Normal image of StraightLineMover1 instance
-        self.hit_image = pygame.transform.scale(straight_line_mover1_hit_img, self.size)    # Image displayed only when got damaged, slightly brighter than normal one
-        self.image_list = [self.norm_image, self.hit_image]                                 # Image list for faster image selection
+        self.size = size
+        self.norm_image = pygame.transform.scale(norm_image, self.size)         # Normal image of StraightLineMover instance
+        self.hit_image = pygame.transform.scale(hit_image, self.size)           # Image displayed only when got damaged, slightly brighter than normal one
+        self.image_list = [self.norm_image, self.hit_image]                     # Image list for faster image selection
         self.current_imagenum = 0
-        self.image = self.image_list[self.current_imagenum]                                 # Initially set current image to normal image
+        self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
         self.rect = self.image.get_rect()
 
         # Calculate the spawneffect's actual position on screen using camera center position
@@ -525,9 +526,63 @@ class StraightLineMover1(pygame.sprite.Sprite):
         """
 
         # Generate explosion animation twice as big as self, then killed
-        explode_size = [self.size[0] * 2, self.size[1] * 2]
+        explode_size = [self.size[0] * 3, self.size[1] * 3]
         Explosion(self.camera_rect, [self.x_pos, self.y_pos], explode_size)
         self.kill()
+
+
+class StraightLineMover1(StraightLineMover):
+    """
+    A child class that inherited StraightLineMover class
+    Has 1 HP, 30x30 pixel size, and speed of 300~500 pixels/sec.
+    """
+
+    def __init__(self, camera):
+        StraightLineMover.__init__(
+            self,
+            camera=camera,
+            hp=1,
+            speed=random.uniform(300, 500),
+            size=[30, 30],
+            norm_image=straight_line_mover1_img,
+            hit_image=straight_line_mover1_hit_img
+        )
+
+
+class StraightLineMover2(StraightLineMover):
+    """
+    A child class that inherited StraightLineMover class
+    Has 5 HP, 50x50 pixel size, and speed of 200~350 pixels/sec.
+    """
+
+    def __init__(self, camera):
+        StraightLineMover.__init__(
+            self,
+            camera=camera,
+            hp=5,
+            speed=random.uniform(200, 350),
+            size=[50, 50],
+            norm_image=straight_line_mover2_img,
+            hit_image=straight_line_mover2_hit_img
+        )
+
+
+class StraightLineMover3(StraightLineMover):
+    """
+    A child class that inherited StraightLineMover class
+    Has 20 HP, 100x100 pixel size, and speed of 100~250 pixels/sec.
+    """
+
+    def __init__(self, camera):
+        StraightLineMover.__init__(
+            self,
+            camera=camera,
+            hp=20,
+            speed=random.uniform(100, 250),
+            size=[100, 100],
+            norm_image=straight_line_mover3_img,
+            hit_image=straight_line_mover3_hit_img
+        )
 
 
 # Generate sprite groups

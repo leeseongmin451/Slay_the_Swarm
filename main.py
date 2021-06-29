@@ -62,6 +62,14 @@ player.set_pos([field_width // 4, field_height // 4])
 for _ in range(120):
     StraightLineMover1(camera_rect)
 
+# Generate 50 StraightLineMover2 sprites for test
+for _ in range(50):
+    StraightLineMover2(camera_rect)
+
+# Generate 20 StraightLineMover3 sprites for test
+for _ in range(20):
+    StraightLineMover3(camera_rect)
+
 
 # Main game loop
 running = True      # Variable to check whether continue game
