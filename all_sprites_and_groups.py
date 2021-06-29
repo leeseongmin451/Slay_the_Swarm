@@ -547,6 +547,7 @@ class StraightLineMover1(StraightLineMover):
             norm_image=straight_line_mover1_img,
             hit_image=straight_line_mover1_hit_img
         )
+        straight_line_mover1_group.add(self)
 
 
 class StraightLineMover2(StraightLineMover):
@@ -565,6 +566,7 @@ class StraightLineMover2(StraightLineMover):
             norm_image=straight_line_mover2_img,
             hit_image=straight_line_mover2_hit_img
         )
+        straight_line_mover2_group.add(self)
 
 
 class StraightLineMover3(StraightLineMover):
@@ -583,6 +585,7 @@ class StraightLineMover3(StraightLineMover):
             norm_image=straight_line_mover3_img,
             hit_image=straight_line_mover3_hit_img
         )
+        straight_line_mover3_group.add(self)
 
 
 # Generate sprite groups
@@ -591,7 +594,12 @@ all_sprites = pygame.sprite.Group()             # Contains all sprites subject t
 # Generate additional sprite groups to specify drawing order
 player_group = pygame.sprite.Group()            # Only player sprite will be added here
 player_projectiles = pygame.sprite.Group()      # All projectiles shot from player
+
 spawneffect_group = pygame.sprite.Group()       # Sprite group for all spawn effects
 hiteffect_group = pygame.sprite.Group()         # Sprite group for all hit effects
 explosion_group = pygame.sprite.Group()         # Sprite group for all explosions
-all_enemies = pygame.sprite.Group()             # Sprite group for all enemy sprites
+
+all_enemies = pygame.sprite.Group()                 # Sprite group for all enemy sprites
+straight_line_mover1_group = pygame.sprite.Group()  # Sprite group for StraightLineMover1 sprites
+straight_line_mover2_group = pygame.sprite.Group()  # Sprite group for StraightLineMover2 sprites
+straight_line_mover3_group = pygame.sprite.Group()  # Sprite group for StraightLineMover3 sprites
