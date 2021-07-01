@@ -590,6 +590,7 @@ class StraightLineMover3(StraightLineMover):
 
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()             # Contains all sprites subject to update every frame
+all_buttons = pygame.sprite.Group()             # All buttons to update and draw
 
 # Generate additional sprite groups to specify drawing order
 player_group = pygame.sprite.Group()            # Only player sprite will be added here

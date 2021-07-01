@@ -1,4 +1,5 @@
 from all_sprites_and_groups import *
+from screens import *
 
 
 # Background class
@@ -60,7 +61,8 @@ player.set_pos([field_width // 4, field_height // 4])
 
 
 # Main game loop
-running = True      # Variable to check whether continue game
+running = True              # Variable to check whether continue game
+mouse_button_down = False   # Variable to check mouse button click event
 while running:
 
     # Get all events occurred during the game
@@ -68,6 +70,11 @@ while running:
         # Check whether quit button clicked
         if event.type == pygame.QUIT:
             running = False
+        # Check mouse button click event
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_button_down = True
+        if event.type == pygame.MOUSEBUTTONUP:
+            mouse_button_down = False
 
     # Get cursor position on the screen
     curspos_screen = pygame.mouse.get_pos()        # Position displayed on screen
