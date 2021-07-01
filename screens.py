@@ -127,5 +127,85 @@ class Button(pygame.sprite.Sprite):
         """
 
         pygame.draw.rect(surface, self.current_back_color, self.rect)   # Draw background first
-        pygame.draw.rect(surface, self.current_color, self.rect, 3)             # Draw boundary of button
+        pygame.draw.rect(surface, self.current_color, self.rect, 3)     # Draw boundary of button
         surface.blit(self.text_surface, self.text_surface_rect)         # Draw text in button
+
+
+class StartButton(Button):
+    """
+    A specific type of Button class which starts the game
+    """
+
+    def __init__(self, rect, text, text_font, text_font_size, color, default_back_color=(0, 0, 0)):
+        Button.__init__(self, rect, text, text_font, text_font_size, color, default_back_color)
+
+    def operate(self):
+        main_menu.hide()
+
+
+class MainMenuScreen:
+    """
+    A screen class to display main menu screen before starting game
+
+    MainMenuScreen has 3 parts:
+     - Title text
+     - Main image
+     - Start button
+    """
+
+    def __init__(self):
+        # Title text
+        self.title_text_font = pygame.font.SysFont("verdana", 80)
+        self.title_text_surface = self.title_text_font.render("SLAY THE SWARM", True, (255, 255, 255))
+        self.title_text_surface_rect = self.title_text_surface.get_rect(center=(960, 100))
+
+        # Main image
+        self.main_image = pygame.image.load("img/icon/icon.png")
+        self.main_image_rect = self.main_image.get_rect(center=(960, 540))
+
+        # Start button
+        self.start_button = StartButton([800, 800, 320, 100], "START", "verdana", 60, (255, 255, 255))
+
+        # Boolean attribute whether display main menu or not
+        self.now_display = False
+
+    def update(self, curspos, mouse_button_down):
+        """
+        Update all buttons in the screen
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: boolean value to check mouse button is pressed
+        :return: None
+        """
+
+        self.start_button.update(curspos, mouse_button_down)
+
+    def draw(self, surface):
+        """
+        Draw all things in the screen on a given surface
+        :param surface: surface to draw on
+        :return: None
+        """
+
+        surface.fill((0, 0, 0))
+        surface.blit(self.title_text_surface, self.title_text_surface_rect)
+        surface.blit(self.main_image, self.main_image_rect)
+        self.start_button.draw(surface)
+
+    def show(self):
+        """
+        Show this screen
+        :return: None
+        """
+
+        self.now_display = True
+
+    def hide(self):
+        """
+        Hide this screen
+        :return: None
+        """
+
+        self.now_display = False
+
+
+main_menu = MainMenuScreen()

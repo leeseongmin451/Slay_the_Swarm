@@ -7,6 +7,8 @@ from pygame.locals import *
 
 import os.path
 
+import ctypes
+ctypes.windll.user32.SetProcessDPIAware()
 
 # Initialize pygame
 pygame.init()
