@@ -109,6 +109,12 @@ class Player(pygame.sprite.Sprite):
         for weapon in self.weapons:
             weapon.update([self.x_pos, self.y_pos], self.target_pos)
 
+        # Check collision with any of enemy sprites
+        collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
+        for enemy in collided_enemies:
+            self.get_damage(enemy.touch_damage)     # Apply damage to player
+            enemy.death()                           # Kill the touched enemy
+
     def aim(self, target_pos):
         """
         Update target position
@@ -129,6 +135,20 @@ class Player(pygame.sprite.Sprite):
         """
 
         self.x_pos, self.y_pos = pos
+
+    def get_damage(self, damage):
+        """
+        Reduce player's HP. If HP <= 0 then kill player
+        :param damage: Amount of damage
+        :return: None
+        """
+
+        self.hp -= damage       # Reduce HP of player
+        if self.hp <= 0:
+            self.death()
+
+    def death(self):
+        pass
 
 
 class PlayerMinigun:
@@ -426,7 +446,7 @@ class StraightLineMover(pygame.sprite.Sprite):
     Moves only through stright line, does not attack player.
     """
 
-    def __init__(self, camera, hp, speed, size, norm_image, hit_image):
+    def __init__(self, camera, hp, speed, size, touch_damage, norm_image, hit_image):
         pygame.sprite.Sprite.__init__(self)
 
         # Camera attribute to calculate relative position from screen
@@ -459,6 +479,9 @@ class StraightLineMover(pygame.sprite.Sprite):
         # Calculate the spawneffect's actual position on screen using camera center position
         self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
         self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+
+        # Touch damage which will be applied to player
+        self.touch_damage = touch_damage
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -534,7 +557,7 @@ class StraightLineMover(pygame.sprite.Sprite):
 class StraightLineMover1(StraightLineMover):
     """
     A child class that inherited StraightLineMover class
-    Has 1 HP, 30x30 pixel size, and speed of 300~500 pixels/sec.
+    Has 1 HP, 30x30 pixel size, -15 touch damage, and speed of 300~500 pixels/sec.
     """
 
     def __init__(self, camera):
@@ -544,6 +567,7 @@ class StraightLineMover1(StraightLineMover):
             hp=1,
             speed=random.uniform(300, 500),
             size=[30, 30],
+            touch_damage=15,
             norm_image=straight_line_mover1_img,
             hit_image=straight_line_mover1_hit_img
         )
@@ -553,7 +577,7 @@ class StraightLineMover1(StraightLineMover):
 class StraightLineMover2(StraightLineMover):
     """
     A child class that inherited StraightLineMover class
-    Has 5 HP, 50x50 pixel size, and speed of 200~350 pixels/sec.
+    Has 5 HP, 50x50 pixel size, -63 touch damage, and speed of 200~350 pixels/sec.
     """
 
     def __init__(self, camera):
@@ -563,6 +587,7 @@ class StraightLineMover2(StraightLineMover):
             hp=5,
             speed=random.uniform(200, 350),
             size=[50, 50],
+            touch_damage=63,
             norm_image=straight_line_mover2_img,
             hit_image=straight_line_mover2_hit_img
         )
@@ -572,7 +597,7 @@ class StraightLineMover2(StraightLineMover):
 class StraightLineMover3(StraightLineMover):
     """
     A child class that inherited StraightLineMover class
-    Has 20 HP, 100x100 pixel size, and speed of 100~250 pixels/sec.
+    Has 20 HP, 100x100 pixel size, -240 touch damage, and speed of 100~250 pixels/sec.
     """
 
     def __init__(self, camera):
@@ -582,6 +607,7 @@ class StraightLineMover3(StraightLineMover):
             hp=20,
             speed=random.uniform(100, 250),
             size=[100, 100],
+            touch_damage=240,
             norm_image=straight_line_mover3_img,
             hit_image=straight_line_mover3_hit_img
         )
