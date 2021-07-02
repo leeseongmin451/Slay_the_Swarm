@@ -61,6 +61,9 @@ class Player(pygame.sprite.Sprite):
         self.weapons = [PlayerMinigun(self.camera_rect)]        # List of all weapons currently equipped by player
         self.target_pos = [0, 0]                # Target position to shoot, equivalent to cursor position
 
+        # Death attribute
+        self.dead = False
+
         # Automatically add self to sprite groups
         all_sprites.add(self)
         player_group.add(self)
@@ -148,7 +151,7 @@ class Player(pygame.sprite.Sprite):
             self.death()
 
     def death(self):
-        pass
+        self.dead = True
 
 
 class PlayerMinigun:

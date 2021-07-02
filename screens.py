@@ -319,6 +319,89 @@ class GamePlayScreen:
         hiteffect_group.draw(surface)       # Draw all hiteffects
         explosion_group.draw(surface)       # Draw all explosions
 
+        # Show game over screen if player dies
+        if self.player.dead:
+            self.hide()
+            game_over_screen.show()
+            self.initialize()
+
+    def show(self):
+        """
+        Show this screen
+        :return: None
+        """
+
+        self.now_display = True
+
+    def hide(self):
+        """
+        Hide this screen
+        :return: None
+        """
+
+        self.now_display = False
+
+    def initialize(self):
+        """
+        Remove all sprites from all groups except player
+        :return: None
+        """
+
+        # Kill all sprites including player
+        for sprite in all_sprites:
+            sprite.kill()
+
+        # Regenerate player instance
+        self.player = Player(camera_rect)
+
+
+class RestartButton(Button):
+    """
+    A specific type of Button class which returns to the main menu screen
+    """
+
+    def __init__(self, rect, text, text_font, text_font_size, color, default_back_color=(0, 0, 0)):
+        Button.__init__(self, rect, text, text_font, text_font_size, color, default_back_color)
+
+    def operate(self):
+        game_over_screen.hide()
+        main_menu.show()
+
+
+class GameOverScreen:
+    def __init__(self):
+        # Game over text
+        self.gameover_text_font = pygame.font.SysFont("verdana", 80)
+        self.gameover_text_surface = self.gameover_text_font.render("GAME OVER", True, (255, 255, 255))
+        self.gameover_text_surface_rect = self.gameover_text_surface.get_rect(center=(960, 100))
+
+        # Restart button
+        self.restart_button = RestartButton([800, 800, 320, 100], "RESTART", "verdana", 60, (255, 255, 255))
+
+        # Boolean attribute whether display game over screen or not
+        self.now_display = False
+
+    def update(self, curspos, mouse_button_down):
+        """
+        Update all buttons in the screen
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: boolean value to check mouse button is pressed
+        :return: None
+        """
+
+        self.restart_button.update(curspos, mouse_button_down)
+
+    def draw(self, surface):
+        """
+        Draw all things in the screen on a given surface
+        :param surface: surface to draw on
+        :return: None
+        """
+
+        surface.fill((0, 0, 0))
+        surface.blit(self.gameover_text_surface, self.gameover_text_surface_rect)
+        self.restart_button.draw(surface)
+
     def show(self):
         """
         Show this screen
@@ -336,5 +419,6 @@ class GamePlayScreen:
         self.now_display = False
 
 
-main_menu = MainMenuScreen()        # Main menu instance
-play_screen = GamePlayScreen()      # Game play screen instance
+main_menu = MainMenuScreen()            # Main menu instance
+play_screen = GamePlayScreen()          # Game play screen instance
+game_over_screen = GameOverScreen()     # Game over screen instance

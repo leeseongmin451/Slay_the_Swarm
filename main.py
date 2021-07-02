@@ -39,5 +39,10 @@ while running:
         play_screen.update(curspos_screen, mouse_button_down)
         play_screen.draw(screen)
 
+    # Update and draw game over screen
+    if game_over_screen.now_display:
+        game_over_screen.update(curspos_screen, mouse_button_down)
+        game_over_screen.draw(screen)
+
     pygame.display.update()     # update all display changes and show them
     fps_clock.tick(FPS)         # make program never run at more than "FPS" frames per second
