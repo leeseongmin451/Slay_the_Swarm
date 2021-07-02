@@ -318,7 +318,7 @@ class GamePlayScreen:
         player_projectiles.draw(surface)    # Draw all projectiles shot from player
         hiteffect_group.draw(surface)       # Draw all hiteffects
         explosion_group.draw(surface)       # Draw all explosions
-        hp_bars.draw(surface)               # Draw all HP bare of enemy sprites
+        hp_bar_group.draw(surface)          # Draw all HP bare of enemy sprites
 
         # Show game over screen if player dies
         if self.player.dead:

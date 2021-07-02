@@ -481,7 +481,7 @@ class StraightLineMover(pygame.sprite.Sprite):
         self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
         self.rect = self.image.get_rect()
 
-        # Calculate the spawneffect's actual position on screen using camera center position
+        # Calculate the sprite's actual position on screen using camera center position
         self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
         self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
 
@@ -527,7 +527,7 @@ class StraightLineMover(pygame.sprite.Sprite):
             self.x_pos += self.x_speed / fps
             self.y_pos += self.y_speed / fps
 
-        # Calculate the spawneffect's actual position on screen using camera center position
+        # Calculate the sprite's actual position on screen using camera center position
         self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
         self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
 
@@ -651,7 +651,7 @@ class HPBar(pygame.sprite.Sprite):
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
-        hp_bars.add(self)
+        hp_bar_group.add(self)
 
         self.duration = 3                       # Only lasts for 3 secs, then disappeare after 3 secs
         self.generated_time = time.time()       # Generated time
@@ -684,6 +684,100 @@ class HPBar(pygame.sprite.Sprite):
         self.generated_time = time.time()
 
 
+class Coin(pygame.sprite.Sprite):
+    """
+    A coin class collectable by player.
+
+    Coin sprite is small, yellowish square object. When a enemy sprite is killed, several coins are scattered with
+    explosion. Then if player approaches near to them, they are attarcted to the player and increases the player.coin
+    attribute. Coins have size attributes, and bigger coins deal more.
+
+    Initially generated coin has a fixed, random speed and direction.
+    """
+
+    def __init__(self, camera, coin_amount, pos, speed):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Camera attribute to calculate relative position from screen
+        self.camera_rect = camera
+
+        # Position speed, and acceleration attributes
+        self.x_pos, self.y_pos = pos                            # Coin's field position given by killed enemy sprite
+        self.speed = speed                                      # Moves at a fixed random speed
+        self.acc = -1500
+        self.direction = random.uniform(-math.pi, math.pi)      # Moves towards a fixed, random direction in radians
+        self.x_speed = self.speed * math.cos(self.direction)    # Calculate x-direction speed using trigonometry
+        self.y_speed = self.speed * math.sin(self.direction)    # Same as x_speed
+        self.x_acc = self.acc * math.cos(self.direction)
+        self.y_acc = self.acc * math.sin(self.direction)
+
+        # Size & image attributes
+        # Size of a coin is determined by coin_amount attribute.
+        self.coin_amount = coin_amount
+        self.size = [math.sqrt(3 * self.coin_amount)] * 2
+        self.image = pygame.Surface(self.size)
+        self.image.fill((255, 255, 0))             # Yellow coin
+        self.rect = self.image.get_rect()
+
+        # Calculate the sprite's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+
+        self.scattered = False          # Is scattering action over?
+        self.attracted = False          # Is attraction by player started?
+        self.attaction_center = None    # Origin of attraction
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        coin_group.add(self)
+
+    def update(self, fps):
+        """
+        Move sprite by updating position.
+        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :return: None
+        """
+
+        # Scattering - After the death of enemy sprite, starts at high speed, then slows down and stop on the field
+        if not self.scattered:
+            self.x_speed += self.x_acc / fps
+            self.y_speed += self.y_acc / fps
+        if abs(self.x_speed) < 1 or self.attracted:
+            self.x_acc = self.y_acc = 0
+            self.x_speed = self.y_speed = 0
+            self.scattered = True
+
+        self.x_pos += self.x_speed / fps
+        self.y_pos += self.y_speed / fps
+
+        # Calculate the sprite's actual position on screen using camera center position
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+
+        # When collected by player
+        if self.attaction_center and get_distance(self.rect.center, self.attaction_center) < 10:
+            self.kill()
+
+    def attracted(self, attraction_center):
+        """
+        Change direction and speed to be attracted to a given point
+        :param attraction_center: position on screen, center of attraction
+        :return: None
+        """
+
+        # Calculate attraction direction using attractioin center and coin position
+        self.attaction_center = attraction_center
+        distance = get_distance(self.rect.center, self.attaction_center)
+        x_difference = self.attaction_center[0] - self.rect.centerx
+        y_difference = self.attaction_center[1] - self.rect.centery
+        x_ratio = x_difference / distance
+        y_ratio = y_difference / distance
+
+        # Attraction speed is twice more faster than scattering speed
+        self.x_speed = self.speed * x_ratio * 2
+        self.y_speed = self.speed * y_ratio * 2
+
+
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()             # Contains all sprites subject to update every frame
 all_buttons = pygame.sprite.Group()             # All buttons to update and draw
@@ -701,4 +795,5 @@ straight_line_mover1_group = pygame.sprite.Group()  # Sprite group for StraightL
 straight_line_mover2_group = pygame.sprite.Group()  # Sprite group for StraightLineMover2 sprites
 straight_line_mover3_group = pygame.sprite.Group()  # Sprite group for StraightLineMover3 sprites
 
-hp_bars = pygame.sprite.Group()                 # Sprite group for HPBar sprites
+hp_bar_group = pygame.sprite.Group()                # Sprite group for HPBar sprites
+coin_group = pygame.sprite.Group()                  # Sprite group for Coin sprites

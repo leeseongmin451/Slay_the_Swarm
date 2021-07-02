@@ -1,9 +1,6 @@
 from screens import *
 
 
-# Define background
-background = Background(background_grid_img, [screen_width, screen_height], camera_rect)
-
 # Generate player instance and add to sprite group
 player = Player(camera_rect)
 player.set_pos([field_width // 4, field_height // 4])
