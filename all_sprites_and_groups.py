@@ -456,11 +456,13 @@ class StraightLineMover(pygame.sprite.Sprite):
         self.camera_rect = camera
 
         # Attributes related to HP and dealing with damage event
-        self.hp = hp                            # Max HP for StraightLineMover sprite
+        self.full_hp = hp                       # Max HP for StraightLineMover sprite
+        self.hp = self.full_hp                  # Current HP for StraightLineMover sprite
         self.got_damaged = False                # Indicates whether got damaged
         self.blink_count = 6                    # The two images will take turn being displayed 3 times for each
         self.frames_per_blink = FPS // 30       # Blinking animation will be displayed at 30fps
         self.current_damage_animation_frame = 0
+        self.hp_bar = None                      # HP bar of this sprite (currently not displayed)
 
         # Position and speed attributes
         self.x_pos = random.randrange(0, field_width)           # Generating position is completely random in entire field
@@ -542,7 +544,12 @@ class StraightLineMover(pygame.sprite.Sprite):
 
         # Apply damage by reducing HP, or call death() if HP <= 0
         self.hp -= damage
-        if self.hp <= 0:
+        # If HP bar already exists, delete it and generate new HP bar.
+        if self.hp_bar:
+            self.hp_bar.kill()
+        if self.hp > 0:
+            self.hp_bar = HPBar(self)
+        else:
             self.death()
 
     def death(self):
@@ -617,6 +624,62 @@ class StraightLineMover3(StraightLineMover):
         straight_line_mover3_group.add(self)
 
 
+class HPBar(pygame.sprite.Sprite):
+    """
+    A rectangular sprite class which represents remaining HP of enemy sprite.
+
+    All enemy sprites has green HPBar sprite class displayed right above them.
+    HPBar sprites are displayed when enemy sprite gets damaged, and lasts only 3 seconds.
+    """
+
+    def __init__(self, parent_sprite):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.parent_sprite = parent_sprite      # Sprite that has hp to visualize
+        # The length of HP bar is determined by the ratio of current HP to full HP of sprite
+        # The length of full HP bar is the same as width of sprite
+        self.width = self.parent_sprite.rect.w * (self.parent_sprite.hp / self.parent_sprite.full_hp)
+
+        self.image = pygame.Surface([round(self.width), 5])
+        self.image.fill((0, 255, 0))            # HP bar has green color
+        # Set the position of HP bar right above teh sprite
+        self.rect = self.image.get_rect(topleft=(self.parent_sprite.rect.x, self.parent_sprite.rect.y - 10))
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        hp_bars.add(self)
+
+        self.duration = 3                       # Only lasts for 3 secs, then disappeare after 3 secs
+        self.generated_time = time.time()       # Generated time
+
+    def update(self, fps):
+        """
+        Update position and duration
+        :return: None
+        """
+
+        # Update position
+        self.rect.topleft = (self.parent_sprite.rect.x, self.parent_sprite.rect.y - 10)
+
+        # Delete HP bar after 3 seconds
+        if time.time() - self.generated_time >= self.duration:
+            self.kill()
+
+    def reset_timer(self):
+        """
+        Set the length of HP bar to the ratio of current HP and reset remaining duration to 3 secs
+        :return: None
+        """
+
+        # Set the length of HP bar to the ratio of current HP
+        self.width = self.parent_sprite.rect.w * (self.parent_sprite.hp / self.parent_sprite.full_hp)
+        self.image = pygame.transform.scale(self.image, (round(self.width), 5))
+        self.rect = self.image.get_rect(topleft=(self.parent_sprite.rect.x, self.parent_sprite.rect.y - 10))
+
+        # reset remaining duration to 3 secs
+        self.generated_time = time.time()
+
+
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()             # Contains all sprites subject to update every frame
 all_buttons = pygame.sprite.Group()             # All buttons to update and draw
@@ -633,3 +696,5 @@ all_enemies = pygame.sprite.Group()                 # Sprite group for all enemy
 straight_line_mover1_group = pygame.sprite.Group()  # Sprite group for StraightLineMover1 sprites
 straight_line_mover2_group = pygame.sprite.Group()  # Sprite group for StraightLineMover2 sprites
 straight_line_mover3_group = pygame.sprite.Group()  # Sprite group for StraightLineMover3 sprites
+
+hp_bars = pygame.sprite.Group()                 # Sprite group for HPBar sprites
