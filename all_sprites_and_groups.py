@@ -714,7 +714,7 @@ class Coin(pygame.sprite.Sprite):
         # Size & image attributes
         # Size of a coin is determined by coin_amount attribute.
         self.coin_amount = coin_amount
-        self.size = [math.sqrt(3 * self.coin_amount)] * 2
+        self.size = [round(math.sqrt(3 * self.coin_amount))] * 2
         self.image = pygame.Surface(self.size)
         self.image.fill((255, 255, 0))             # Yellow coin
         self.rect = self.image.get_rect()
@@ -773,9 +773,33 @@ class Coin(pygame.sprite.Sprite):
         x_ratio = x_difference / distance
         y_ratio = y_difference / distance
 
-        # Attraction speed is twice more faster than scattering speed
-        self.x_speed = self.speed * x_ratio * 2
-        self.y_speed = self.speed * y_ratio * 2
+        # Attraction speed is 1000 pixels/sec
+        self.x_speed = 1000 * x_ratio * 2
+        self.y_speed = 1000 * y_ratio * 2
+
+
+def scatter_coins(camera, pos, total_coins_amount, speed_min_max):
+    """
+    Generates several coin sprites at a given point and scatter them at random speed and random direction.
+    The value of each coin will be randomly selected in a specific range, but total amount of coins will be constant.
+    :param camera: camera rect parameter for coin sprite
+    :param pos: position on field where all coins generated
+    :param total_coins_amount: total amount of coins
+    :param speed_min_max: list(or tuple) of minimum and maximum scattering speed of each coin
+    :return: None
+    """
+
+    # Value of each coin will be randomly selected in a specific range
+    coin_amount_min = total_coins_amount // 20 + 1
+    coin_amount_max = total_coins_amount // 3
+
+    # Repeatedly generate Coin sprite until total amount of coins become 0
+    current_coin_amount = random.randint(coin_amount_min, coin_amount_max)
+    while total_coins_amount > current_coin_amount:
+        Coin(camera, current_coin_amount, pos, random.uniform(*speed_min_max))
+        total_coins_amount -= current_coin_amount
+        current_coin_amount = random.randint(coin_amount_min, coin_amount_max)
+    Coin(camera, total_coins_amount, pos, random.uniform(*speed_min_max))
 
 
 # Generate sprite groups
