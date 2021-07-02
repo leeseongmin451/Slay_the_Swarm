@@ -558,6 +558,10 @@ class StraightLineMover(pygame.sprite.Sprite):
         :return: None
         """
 
+        # Delete HP bar if exists
+        if self.hp_bar:
+            self.hp_bar.kill()
+
         # Generate explosion animation twice as big as self, then killed
         explode_size = [self.size[0] * 3, self.size[1] * 3]
         Explosion(self.camera_rect, [self.x_pos, self.y_pos], explode_size)
