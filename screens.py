@@ -1,3 +1,5 @@
+import pygame.draw
+
 from all_sprites_and_groups import *
 
 
@@ -284,6 +286,59 @@ class Background:
         surface.blit(self.image, self.part11_rect)
 
 
+class BoundedBar:
+    """
+    Bar class with boundary that visualizes various kinds of measurements, progress, etc...
+    """
+
+    def __init__(self, rect: pygame.Rect, target_value, background_color, bar_color, boundary_color):
+        self.rect = rect
+        self.full_length = self.rect.w
+        self.bar_rect = rect.copy()
+        self.target_value = target_value
+        self.background_color = background_color
+        self.bar_color = bar_color
+        self.boundary_color = boundary_color
+
+    def update(self, current_value):
+        """
+        Update current length of bar
+        :param current_value: to calculate current length of bar
+        :return: None
+        """
+
+        self.bar_rect.w = round(self.full_length * current_value / self.target_value)
+
+    def draw(self, surface):
+        """
+        Draw background, current length of bar, and boundary
+        :param surface: surface to draw
+        :return: None
+        """
+
+        pygame.draw.rect(surface, self.background_color, self.rect)
+        pygame.draw.rect(surface, self.bar_color, self.bar_rect)
+        pygame.draw.rect(surface, self.boundary_color, self.rect, 3)
+
+
+class PlayerHPBar(BoundedBar):
+    """
+    A child class of BoundedBar to display HP of player
+    """
+
+    def __init__(self, target_value):
+        BoundedBar.__init__(self, pygame.Rect([30, 30, 300, 20]), target_value, (0, 0, 0), (0, 255, 0), (255, 255, 255))
+
+
+class PlayerMPBar(BoundedBar):
+    """
+    A child class of BoundedBar to display MP of player
+    """
+
+    def __init__(self, target_value):
+        BoundedBar.__init__(self, pygame.Rect([30, 60, 300, 20]), target_value, (0, 0, 0), (0, 255, 255), (255, 255, 255))
+
+
 class GamePlayScreen:
     """
     A screen class to display game play screen
@@ -297,6 +352,10 @@ class GamePlayScreen:
 
         # Player instance
         self.player = Player(camera_rect)
+
+        # Player HP & MP bar instances
+        self.player_hp_bar = PlayerHPBar(self.player.full_hp)
+        self.player_mp_bar = PlayerMPBar(self.player.full_mp)
 
         # Boolean attribute whether display game play screen or not
         self.now_display = False
@@ -321,12 +380,16 @@ class GamePlayScreen:
         camera_rect.center = self.player.get_pos()
 
         # Generate enemy sprites
-        if len(straight_line_mover1_group) < 120:
+        if len(straight_line_mover1_group) < 200:
             StraightLineMover1(camera_rect)
-        if len(straight_line_mover2_group) < 50:
+        if len(straight_line_mover2_group) < 70:
             StraightLineMover2(camera_rect)
-        if len(straight_line_mover3_group) < 20:
+        if len(straight_line_mover3_group) < 30:
             StraightLineMover3(camera_rect)
+
+        # Update player HP & MP bars
+        self.player_hp_bar.update(self.player.hp)
+        self.player_mp_bar.update(self.player.mp)
 
     def draw(self, surface):
         """
@@ -346,6 +409,10 @@ class GamePlayScreen:
         hiteffect_group.draw(surface)       # Draw all hiteffects
         explosion_group.draw(surface)       # Draw all explosions
         hp_bar_group.draw(surface)          # Draw all HP bare of enemy sprites
+
+        # Draw player HP & MP bars
+        self.player_hp_bar.draw(surface)
+        self.player_mp_bar.draw(surface)
 
         # Show game over screen if player dies
         if self.player.dead:
