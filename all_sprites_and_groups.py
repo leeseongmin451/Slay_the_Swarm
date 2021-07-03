@@ -449,7 +449,7 @@ class StraightLineMover(pygame.sprite.Sprite):
     Moves only through stright line, does not attack player.
     """
 
-    def __init__(self, camera, hp, speed, size, touch_damage, norm_image, hit_image):
+    def __init__(self, camera, hp, speed, size, touch_damage, norm_image, hit_image, coin_amount):
         pygame.sprite.Sprite.__init__(self)
 
         # Camera attribute to calculate relative position from screen
@@ -487,6 +487,10 @@ class StraightLineMover(pygame.sprite.Sprite):
 
         # Touch damage which will be applied to player
         self.touch_damage = touch_damage
+
+        # Coin amount & coin scatter speed attribute
+        self.coin_amount = coin_amount
+        self.coin_scatter_speed_min_max = (10 * self.size[0], 13 * self.size[0])
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -562,6 +566,9 @@ class StraightLineMover(pygame.sprite.Sprite):
         if self.hp_bar:
             self.hp_bar.kill()
 
+        # Scatter coins
+        scatter_coins(self.camera_rect, [self.x_pos, self.y_pos], self.coin_amount, self.coin_scatter_speed_min_max)
+
         # Generate explosion animation twice as big as self, then killed
         explode_size = [self.size[0] * 3, self.size[1] * 3]
         Explosion(self.camera_rect, [self.x_pos, self.y_pos], explode_size)
@@ -583,7 +590,8 @@ class StraightLineMover1(StraightLineMover):
             size=[30, 30],
             touch_damage=15,
             norm_image=straight_line_mover1_img,
-            hit_image=straight_line_mover1_hit_img
+            hit_image=straight_line_mover1_hit_img,
+            coin_amount=10
         )
         straight_line_mover1_group.add(self)
 
@@ -603,7 +611,8 @@ class StraightLineMover2(StraightLineMover):
             size=[50, 50],
             touch_damage=63,
             norm_image=straight_line_mover2_img,
-            hit_image=straight_line_mover2_hit_img
+            hit_image=straight_line_mover2_hit_img,
+            coin_amount=15
         )
         straight_line_mover2_group.add(self)
 
@@ -623,7 +632,8 @@ class StraightLineMover3(StraightLineMover):
             size=[100, 100],
             touch_damage=240,
             norm_image=straight_line_mover3_img,
-            hit_image=straight_line_mover3_hit_img
+            hit_image=straight_line_mover3_hit_img,
+            coin_amount=30
         )
         straight_line_mover3_group.add(self)
 
@@ -742,7 +752,7 @@ class Coin(pygame.sprite.Sprite):
         if not self.scattered:
             self.x_speed += self.x_acc / fps
             self.y_speed += self.y_acc / fps
-        if abs(self.x_speed) < 1 or self.attracted:
+        if abs(self.x_speed) < 60 or self.attracted:
             self.x_acc = self.y_acc = 0
             self.x_speed = self.y_speed = 0
             self.scattered = True
@@ -774,8 +784,8 @@ class Coin(pygame.sprite.Sprite):
         y_ratio = y_difference / distance
 
         # Attraction speed is 1000 pixels/sec
-        self.x_speed = 1000 * x_ratio * 2
-        self.y_speed = 1000 * y_ratio * 2
+        self.x_speed = 1000 * x_ratio
+        self.y_speed = 1000 * y_ratio
 
 
 def scatter_coins(camera, pos, total_coins_amount, speed_min_max):
