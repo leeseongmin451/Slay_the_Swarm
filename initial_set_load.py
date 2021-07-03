@@ -63,6 +63,10 @@ for i in range(9):
     new_frame.set_colorkey((0, 0, 0))               # Set black background of all image frames as transparent
     hiteffect_animation.append(new_frame)
 
+# Load image for shockwave
+shockwave_image = pygame.image.load("img/shockwave/shockwave.png").convert()
+shockwave_image.set_colorkey((255, 255, 255))       # Set white background as transparent
+
 # Load image frames for animating explosions
 explosion_animation_list_small = []         # For 32x32 images
 for i in [5, 7]:

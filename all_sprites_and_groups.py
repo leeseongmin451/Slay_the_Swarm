@@ -409,6 +409,30 @@ class HitEffect(pygame.sprite.Sprite):
             self.kill()
 
 
+class Shockwave(pygame.sprite.Sprite):
+    def __init__(self, pos, size):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Size & image attributes
+        self.size = size
+        self.image = pygame.transform.scale(shockwave_image, self.size)
+        self.rect = self.image.get_rect()
+
+        # Set position
+        self.rect.center = pos
+
+        self.appeared = False
+
+        all_sprites.add(self)
+        shockwave_group.add(self)
+
+    def update(self, fps):
+
+        if self.appeared:
+            self.kill()
+        self.appeared = True
+
+
 class Explosion(pygame.sprite.Sprite):
     """
     An effect sprite generated when a enemy sprite killed or large projectiles (cannonballs, rockets, etc) exploded
@@ -442,6 +466,10 @@ class Explosion(pygame.sprite.Sprite):
         # Calculate the explosion's actual position on screen using camera center position
         self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
         self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+
+        # Generate shockwave sprite behind the explosion
+        shockwave_size = [round(self.size[0] * .7), round(self.size[1] * .7)]
+        Shockwave(self.rect.center, shockwave_size)
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -865,6 +893,7 @@ player_projectiles = pygame.sprite.Group()      # All projectiles shot from play
 spawneffect_group = pygame.sprite.Group()       # Sprite group for all spawn effects
 hiteffect_group = pygame.sprite.Group()         # Sprite group for all hit effects
 explosion_group = pygame.sprite.Group()         # Sprite group for all explosions
+shockwave_group = pygame.sprite.Group()         # Sprite group for all shockwaves
 
 all_enemies = pygame.sprite.Group()                 # Sprite group for all enemy sprites
 straight_line_mover1_group = pygame.sprite.Group()  # Sprite group for StraightLineMover1 sprites

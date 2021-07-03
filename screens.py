@@ -401,7 +401,8 @@ class GamePlayScreen:
         self.background.draw(surface)
 
         # Draw all sprites
-        coin_group.draw(surface)
+        shockwave_group.draw(surface)       # Draw all shockwaves
+        coin_group.draw(surface)            # Draw all coins
         spawneffect_group.draw(surface)     # Draw all spawneffects
         player_group.draw(surface)          # Draw player
         all_enemies.draw(surface)           # Draw all enemies
