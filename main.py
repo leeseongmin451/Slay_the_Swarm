@@ -8,9 +8,8 @@ player.set_pos([field_width // 4, field_height // 4])
 main_menu.show()
 
 # Main game loop
-running = True              # Variable to check whether continue game
 mouse_button_down = False   # Variable to check mouse button click event
-while running:
+while not is_terminated():
 
     # Get all events occurred during the game
     for event in pygame.event.get():

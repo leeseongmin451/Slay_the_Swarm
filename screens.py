@@ -135,12 +135,35 @@ class StartButton(Button):
     A specific type of Button class which starts the game
     """
 
-    def __init__(self, rect, text, text_font, text_font_size, color, default_back_color=(0, 0, 0)):
-        Button.__init__(self, rect, text, text_font, text_font_size, color, default_back_color)
+    def __init__(self):
+        Button.__init__(self, [800, 800, 320, 100], "START", "verdana", 60, (255, 255, 255))
 
     def operate(self):
         main_menu.hide()
         play_screen.show()
+
+
+class QuitButton(Button):
+    """
+    A specific type of Button class which quits the game
+    """
+
+    def __init__(self):
+        Button.__init__(self, [820, 930, 280, 70], "QUIT GAME", "verdana", 40, (255, 255, 255))
+
+        self.terminate_game = False
+
+    def operate(self):
+        self.terminate_game = True
+
+
+def is_terminated():
+    """
+    Check termination of game. returns QuitButton class instance's attribute "terminate_game"
+    :return: QuitButton class instance's attribute "terminate_game"
+    """
+
+    return main_menu.quit_button.terminate_game
 
 
 class MainMenuScreen:
@@ -163,8 +186,9 @@ class MainMenuScreen:
         self.main_image = pygame.image.load("img/icon/icon.png")
         self.main_image_rect = self.main_image.get_rect(center=(960, 540))
 
-        # Start button
-        self.start_button = StartButton([800, 800, 320, 100], "START", "verdana", 60, (255, 255, 255))
+        # Start and quit button
+        self.start_button = StartButton()
+        self.quit_button = QuitButton()
 
         # Boolean attribute whether display main menu or not
         self.now_display = False
@@ -178,6 +202,7 @@ class MainMenuScreen:
         """
 
         self.start_button.update(curspos, mouse_button_down)
+        self.quit_button.update(curspos, mouse_button_down)
 
     def draw(self, surface):
         """
@@ -190,6 +215,7 @@ class MainMenuScreen:
         surface.blit(self.title_text_surface, self.title_text_surface_rect)
         surface.blit(self.main_image, self.main_image_rect)
         self.start_button.draw(surface)
+        self.quit_button.draw(surface)
 
     def show(self):
         """
@@ -362,8 +388,8 @@ class RestartButton(Button):
     A specific type of Button class which returns to the main menu screen
     """
 
-    def __init__(self, rect, text, text_font, text_font_size, color, default_back_color=(0, 0, 0)):
-        Button.__init__(self, rect, text, text_font, text_font_size, color, default_back_color)
+    def __init__(self):
+        Button.__init__(self, [800, 800, 320, 100], "RESTART", "verdana", 60, (255, 255, 255))
 
     def operate(self):
         game_over_screen.hide()
@@ -378,7 +404,7 @@ class GameOverScreen:
         self.gameover_text_surface_rect = self.gameover_text_surface.get_rect(center=(960, 100))
 
         # Restart button
-        self.restart_button = RestartButton([800, 800, 320, 100], "RESTART", "verdana", 60, (255, 255, 255))
+        self.restart_button = RestartButton()
 
         # Boolean attribute whether display game over screen or not
         self.now_display = False
