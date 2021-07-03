@@ -7,6 +7,10 @@ import pygame.sprite
 from initial_set_load import *
 
 
+# Global variable for score
+player_score = 0
+
+
 def get_distance(pos1, pos2):
     """
     Calculate distance between two given (x, y) coordinate points usin Pythagorean theoram
@@ -125,6 +129,9 @@ class Player(pygame.sprite.Sprite):
                 coin.attract(self.rect.center)
                 self.coins += coin.coin_amount
 
+        # Get score update
+        self.update_score()
+
     def aim(self, target_pos):
         """
         Update target position
@@ -145,6 +152,16 @@ class Player(pygame.sprite.Sprite):
         """
 
         self.x_pos, self.y_pos = pos
+
+    def update_score(self):
+        """
+        Increase score when killed an enemy
+        :return: None
+        """
+
+        global player_score
+        self.score += player_score
+        player_score = 0
 
     def get_damage(self, damage):
         """
@@ -456,7 +473,7 @@ class StraightLineMover(pygame.sprite.Sprite):
     Moves only through stright line, does not attack player.
     """
 
-    def __init__(self, camera, hp, speed, size, touch_damage, norm_image, hit_image, coin_amount):
+    def __init__(self, camera, hp, speed, size, touch_damage, norm_image, hit_image, coin_amount, score):
         pygame.sprite.Sprite.__init__(self)
 
         # Camera attribute to calculate relative position from screen
@@ -498,6 +515,9 @@ class StraightLineMover(pygame.sprite.Sprite):
         # Coin amount & coin scatter speed attribute
         self.coin_amount = coin_amount
         self.coin_scatter_speed_min_max = (100 + 22 * self.coin_amount, 100 + 25 * self.coin_amount)
+
+        # Score attribute
+        self.score = score
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -576,6 +596,10 @@ class StraightLineMover(pygame.sprite.Sprite):
         # Scatter coins
         scatter_coins(self.camera_rect, [self.x_pos, self.y_pos], self.coin_amount, self.coin_scatter_speed_min_max)
 
+        # Give score to player
+        global player_score
+        player_score = self.score
+
         # Generate explosion animation twice as big as self, then killed
         explode_size = [self.size[0] * 3, self.size[1] * 3]
         Explosion(self.camera_rect, [self.x_pos, self.y_pos], explode_size)
@@ -598,7 +622,8 @@ class StraightLineMover1(StraightLineMover):
             touch_damage=15,
             norm_image=straight_line_mover1_img,
             hit_image=straight_line_mover1_hit_img,
-            coin_amount=10
+            coin_amount=10,
+            score=10
         )
         straight_line_mover1_group.add(self)
 
@@ -619,7 +644,8 @@ class StraightLineMover2(StraightLineMover):
             touch_damage=63,
             norm_image=straight_line_mover2_img,
             hit_image=straight_line_mover2_hit_img,
-            coin_amount=15
+            coin_amount=15,
+            score=30
         )
         straight_line_mover2_group.add(self)
 
@@ -640,7 +666,8 @@ class StraightLineMover3(StraightLineMover):
             touch_damage=240,
             norm_image=straight_line_mover3_img,
             hit_image=straight_line_mover3_hit_img,
-            coin_amount=30
+            coin_amount=30,
+            score=100
         )
         straight_line_mover3_group.add(self)
 
