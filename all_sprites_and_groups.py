@@ -41,6 +41,7 @@ class Player(pygame.sprite.Sprite):
         # score & coins attribute
         self.score = 0
         self.coins = 0
+        self.coin_magnet_range = 100
 
         # Position, Speed & acceleration attribute
         # Unit of speed: pixel/sec
@@ -117,6 +118,12 @@ class Player(pygame.sprite.Sprite):
         for enemy in collided_enemies:
             self.get_damage(enemy.touch_damage)     # Apply damage to player
             enemy.death()                           # Kill the touched enemy
+
+        # Collect coins in a specified range
+        for coin in coin_group:
+            if get_distance(self.rect.center, coin.rect.center) < self.coin_magnet_range:
+                coin.attract(self.rect.center)
+                self.coins += coin.coin_amount
 
     def aim(self, target_pos):
         """
@@ -490,7 +497,7 @@ class StraightLineMover(pygame.sprite.Sprite):
 
         # Coin amount & coin scatter speed attribute
         self.coin_amount = coin_amount
-        self.coin_scatter_speed_min_max = (10 * self.size[0], 13 * self.size[0])
+        self.coin_scatter_speed_min_max = (100 + 22 * self.coin_amount, 100 + 25 * self.coin_amount)
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -724,7 +731,7 @@ class Coin(pygame.sprite.Sprite):
         # Size & image attributes
         # Size of a coin is determined by coin_amount attribute.
         self.coin_amount = coin_amount
-        self.size = [round(math.sqrt(3 * self.coin_amount))] * 2
+        self.size = [round(math.sqrt(9 * self.coin_amount))] * 2
         self.image = pygame.Surface(self.size)
         self.image.fill((255, 255, 0))             # Yellow coin
         self.rect = self.image.get_rect()
@@ -736,6 +743,10 @@ class Coin(pygame.sprite.Sprite):
         self.scattered = False          # Is scattering action over?
         self.attracted = False          # Is attraction by player started?
         self.attaction_center = None    # Origin of attraction
+
+        # For caluculating duration
+        self.generated_time = time.time()
+        self.duration = 6 * random.uniform(0.8, 1.2)
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -768,7 +779,11 @@ class Coin(pygame.sprite.Sprite):
         if self.attaction_center and get_distance(self.rect.center, self.attaction_center) < 10:
             self.kill()
 
-    def attracted(self, attraction_center):
+        # Kill coin after 6 secs (on average)
+        if time.time() - self.generated_time > self.duration:
+            self.kill()
+
+    def attract(self, attraction_center):
         """
         Change direction and speed to be attracted to a given point
         :param attraction_center: position on screen, center of attraction
