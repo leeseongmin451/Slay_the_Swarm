@@ -155,6 +155,10 @@ class Player(pygame.sprite.Sprite):
                 coin.attract(self.rect.center)
                 self.coins += coin.coin_amount
 
+        # HP & MP regeneration
+        self.hp = min(self.full_hp, self.hp + self.full_hp / (100 * fps))
+        self.mp = min(self.full_mp, self.mp + self.full_mp / (150 * fps))
+
         # Get score update
         self.update_score()
 
