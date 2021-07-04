@@ -75,7 +75,7 @@ class Player(pygame.sprite.Sprite):
 
         # Attributes for weapons
         self.weapons = [PlayerMinigun(self.camera_rect)]        # List of all weapons currently equipped by player
-        self.target_pos = [0, 0]                # Target position to shoot, equivalent to cursor position
+        self.target_pos = [0, 0]                                # Target position to shoot, equivalent to cursor position
 
         # Death attribute
         self.dead = False
@@ -210,6 +210,30 @@ class Player(pygame.sprite.Sprite):
 
     def death(self):
         self.dead = True
+
+
+class TargetPointer(pygame.sprite.Sprite):
+    """
+    A very simple sprite class which visualizes cursor targeting point.
+    Just follows cursor.
+    """
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.size = [30, 30]
+        self.image = pygame.transform.scale(target_pointer_img, self.size)
+        self.rect = self.image.get_rect()
+
+        target_pointer_group.add(self)
+
+    def update(self, curspos):
+        """
+        Update position of target pointer
+        :return: None
+        """
+
+        self.rect.center = curspos
 
 
 class PlayerMinigun:
@@ -895,6 +919,7 @@ all_buttons = pygame.sprite.Group()             # All buttons to update and draw
 
 # Generate additional sprite groups to specify drawing order
 player_group = pygame.sprite.Group()            # Only player sprite will be added here
+target_pointer_group = pygame.sprite.Group()    # Only target pointer will be added here
 player_projectiles = pygame.sprite.Group()      # All projectiles shot from player
 
 spawneffect_group = pygame.sprite.Group()       # Sprite group for all spawn effects

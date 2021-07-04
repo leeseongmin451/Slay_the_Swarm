@@ -1,10 +1,6 @@
 from screens import *
 
 
-# Generate player instance and add to sprite group
-player = Player(camera_rect)
-player.set_pos([field_width // 4, field_height // 4])
-
 main_menu.show()
 
 # Main game loop

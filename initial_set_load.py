@@ -41,6 +41,10 @@ background_grid_img = pygame.image.load("img/background_grid.png").convert()
 # Load image for Player sprite
 player_img = pygame.image.load("img/character/player.png").convert()
 
+# Load target pointer image
+target_pointer_img = pygame.image.load("img/target_pointer/target_pointer.png").convert()
+target_pointer_img.set_colorkey((0, 0, 0))          # Make black background invisible(transparent)
+
 # Load image for PlayerNormalBullet sprite
 player_normal_bullet_animation = []
 for i in range(4):

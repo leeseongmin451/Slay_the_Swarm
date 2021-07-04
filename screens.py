@@ -141,8 +141,17 @@ class StartButton(Button):
         Button.__init__(self, [800, 800, 320, 100], "START", "verdana", 60, (255, 255, 255))
 
     def operate(self):
+        """
+        Start game
+        :return: None
+        """
+
+        # Hide main menu and show game play screen
         main_menu.hide()
         play_screen.show()
+
+        # Hide mouse cursor
+        pygame.mouse.set_visible(False)
 
 
 class QuitButton(Button):
@@ -350,8 +359,9 @@ class GamePlayScreen:
         # Background instance
         self.background = Background(background_grid_img, [screen_width, screen_height], camera_rect)
 
-        # Player instance
+        # Player & target pointer instance
         self.player = Player(camera_rect)
+        self.target_pointer = TargetPointer()
 
         # Player HP & MP bar instances
         self.player_hp_bar = PlayerHPBar(self.player.full_hp)
@@ -375,6 +385,7 @@ class GamePlayScreen:
         # Update all sprites
         all_sprites.update(FPS)
         self.player.aim(curspos_field)
+        self.target_pointer.update(curspos)
 
         # Set camera position to player
         camera_rect.center = self.player.get_pos()
@@ -390,6 +401,13 @@ class GamePlayScreen:
         # Update player HP & MP bars
         self.player_hp_bar.update(self.player.hp)
         self.player_mp_bar.update(self.player.mp)
+
+        # Show game over screen if player dies
+        if self.player.dead:
+            self.hide()
+            game_over_screen.show()
+            pygame.mouse.set_visible(True)      # Show mouse cursor
+            self.initialize()
 
     def draw(self, surface):
         """
@@ -408,17 +426,12 @@ class GamePlayScreen:
         player_projectiles.draw(surface)    # Draw all projectiles shot from player
         hiteffect_group.draw(surface)       # Draw all hiteffects
         explosion_group.draw(surface)       # Draw all explosions
-        hp_bar_group.draw(surface)          # Draw all HP bare of enemy sprites
+        hp_bar_group.draw(surface)          # Draw all HP bar of enemy sprites
+        target_pointer_group.draw(surface)  # Draw target pointer
 
         # Draw player HP & MP bars
         self.player_hp_bar.draw(surface)
         self.player_mp_bar.draw(surface)
-
-        # Show game over screen if player dies
-        if self.player.dead:
-            self.hide()
-            game_over_screen.show()
-            self.initialize()
 
     def show(self):
         """
@@ -446,8 +459,10 @@ class GamePlayScreen:
         for sprite in all_sprites:
             sprite.kill()
 
-        # Regenerate player instance
+        # Regenerate player & target pointer instance
         self.player = Player(camera_rect)
+        self.target_pointer.kill()
+        self.target_pointer = TargetPointer()
 
 
 class RestartButton(Button):
