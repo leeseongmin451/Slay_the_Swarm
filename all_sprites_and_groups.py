@@ -36,9 +36,15 @@ class Player(pygame.sprite.Sprite):
         # camera attribute following the player
         self.camera_rect = camera
 
-        # HP & MP attributes
+        # Attributes related to HP and dealing with damage event
         self.full_hp = 100
         self.hp = self.full_hp
+        self.got_damaged = False                # Indicates whether got damaged
+        self.blink_count = 6                    # The two images will take turn being displayed 3 times for each
+        self.frames_per_blink = FPS // 30       # Blinking animation will be displayed at 30fps
+        self.current_damage_animation_frame = 0
+
+        # MP attributes
         self.full_mp = 100
         self.mp = self.full_mp
 
@@ -58,7 +64,12 @@ class Player(pygame.sprite.Sprite):
         self.acc = 1800
 
         # Image & rect attributes
-        self.image = pygame.transform.scale(player_img, [30, 30])
+        self.norm_image = pygame.transform.scale(player_img, [30, 30])          # Normal image of Player
+        self.hit_image = pygame.Surface([30, 30])                               # Image displayed only when got damaged
+        self.hit_image.fill((255, 0, 0))                                        # Blink red
+        self.image_list = [self.norm_image, self.hit_image]                     # Image list for faster image selection
+        self.current_imagenum = 0
+        self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
         self.rect = self.image.get_rect()
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
@@ -79,6 +90,21 @@ class Player(pygame.sprite.Sprite):
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
+
+        # Deal with damage event
+        if self.got_damaged:
+            if self.current_damage_animation_frame % self.frames_per_blink == 0:
+                self.current_imagenum = (self.current_imagenum + 1) % 2     # Change imagenum to 0 or 1
+                self.blink_count -= 1                                       # Reduce remaining blinking counts
+                self.image = self.image_list[self.current_imagenum]     # Set the image according to imagenum
+
+            self.current_damage_animation_frame += 1                    # Count frames passed from got damaged
+
+            # If blinking animation ends
+            if self.blink_count == 0:
+                self.current_imagenum = 0       # Set the image to normal one
+                self.got_damaged = False        # No blinking until getting another damage
+                self.image = self.image_list[self.current_imagenum]     # Set the image according to imagenum
 
         # Accelerate player with WASD key
         keys = pygame.key.get_pressed()         # Get keyboard inputs
@@ -169,6 +195,10 @@ class Player(pygame.sprite.Sprite):
         :param damage: Amount of damage
         :return: None
         """
+
+        # Start blinking animation and initialize blink count
+        self.got_damaged = True
+        self.blink_count = 6
 
         self.hp -= damage       # Reduce HP of player
         if self.hp <= 0:
@@ -427,7 +457,7 @@ class Explosion(pygame.sprite.Sprite):
         self.size = size
         self.n_frames = 0
         # Select right size of explosion animation according to size
-        while not self.n_frames:
+        while self.n_frames <= 1:
             if self.size[0] < 128:
                 self.image_frame_list = random.choice(explosion_animation_list_small)[::(60 // FPS)]        # Get image frames according to fps
             elif self.size[0] < 256:
