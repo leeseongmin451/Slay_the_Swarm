@@ -64,13 +64,13 @@ for i in range(9):
     hiteffect_animation.append(new_frame)
 
 # Load image for shockwave
-shockwave_image = pygame.image.load("img/shockwave/shockwave.png").convert()
+shockwave_image = pygame.image.load("img/explosion/shockwave.png").convert()
 shockwave_image.set_colorkey((255, 255, 255))       # Set white background as transparent
 
-# Load image frames for animating explosions
+# Load image frames for animating explosions, all animations have shockwave image at the first frame
 explosion_animation_list_small = []         # For 32x32 images
 for i in [5, 7]:
-    explosion_animation = []
+    explosion_animation = [shockwave_image]
     j = 0
     while True:
         path = "img/explosion/expl_{:0>2}_{:0>4}.png".format(i, j)
@@ -83,7 +83,7 @@ for i in [5, 7]:
 
 explosion_animation_list_medium = []        # For 64x64 images
 for i in [1, 2, 3, 4, 6, 8]:
-    explosion_animation = []
+    explosion_animation = [shockwave_image]
     j = 0
     while True:
         path = "img/explosion/expl_{:0>2}_{:0>4}.png".format(i, j)
@@ -96,7 +96,7 @@ for i in [1, 2, 3, 4, 6, 8]:
 
 explosion_animation_list_large = []        # For 96x96 and 128x128 images
 for i in [9, 10, 11]:
-    explosion_animation = []
+    explosion_animation = [shockwave_image]
     j = 0
     while True:
         path = "img/explosion/expl_{:0>2}_{:0>4}.png".format(i, j)
