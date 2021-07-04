@@ -632,7 +632,7 @@ class StraightLineMover1(StraightLineMover):
 class StraightLineMover2(StraightLineMover):
     """
     A child class that inherited StraightLineMover class
-    Has 5 HP, 50x50 pixel size, -63 touch damage, and speed of 200~350 pixels/sec.
+    Has 5 HP, 50x50 pixel size, -45 touch damage, and speed of 200~350 pixels/sec.
     """
 
     def __init__(self, camera):
@@ -642,7 +642,7 @@ class StraightLineMover2(StraightLineMover):
             hp=5,
             speed=random.uniform(200, 350),
             size=[50, 50],
-            touch_damage=63,
+            touch_damage=45,
             norm_image=straight_line_mover2_img,
             hit_image=straight_line_mover2_hit_img,
             coin_amount=15,
@@ -654,7 +654,7 @@ class StraightLineMover2(StraightLineMover):
 class StraightLineMover3(StraightLineMover):
     """
     A child class that inherited StraightLineMover class
-    Has 20 HP, 100x100 pixel size, -240 touch damage, and speed of 100~250 pixels/sec.
+    Has 20 HP, 100x100 pixel size, -143 touch damage, and speed of 100~250 pixels/sec.
     """
 
     def __init__(self, camera):
@@ -664,7 +664,7 @@ class StraightLineMover3(StraightLineMover):
             hp=20,
             speed=random.uniform(100, 250),
             size=[100, 100],
-            touch_damage=240,
+            touch_damage=143,
             norm_image=straight_line_mover3_img,
             hit_image=straight_line_mover3_hit_img,
             coin_amount=30,
@@ -759,7 +759,7 @@ class Coin(pygame.sprite.Sprite):
         # Size & image attributes
         # Size of a coin is determined by coin_amount attribute.
         self.coin_amount = coin_amount
-        self.size = [round(math.sqrt(9 * self.coin_amount))] * 2
+        self.size = [round(math.sqrt(16 * self.coin_amount))] * 2
         self.image = pygame.Surface(self.size)
         self.image.fill((255, 255, 0))             # Yellow coin
         self.rect = self.image.get_rect()
