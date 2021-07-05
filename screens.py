@@ -376,15 +376,12 @@ class GamePlayScreen:
         :return: None
         """
 
-        # Actual cursor position on game field
-        curspos_field = [curspos[0] + camera_rect.left, curspos[1] + camera_rect.top]
-
         # Update background position with respect to screen
         self.background.update()
 
         # Update all sprites
-        all_sprites.update(FPS)
-        self.player.aim(curspos_field)
+        all_sprites.update(FPS, curspos, mouse_button_down)
+        self.player.aim(curspos)
         self.target_pointer.update(curspos)
 
         # Set camera position to player

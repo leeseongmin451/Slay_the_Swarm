@@ -84,9 +84,11 @@ class Player(pygame.sprite.Sprite):
         all_sprites.add(self)
         player_group.add(self)
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Update function for moving player sprite, using weapons per frame
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
@@ -141,7 +143,7 @@ class Player(pygame.sprite.Sprite):
 
         # Use all equipped weapons
         for weapon in self.weapons:
-            weapon.update([self.x_pos, self.y_pos], self.target_pos)
+            weapon.update(self.rect.center, self.target_pos)
 
         # Check collision with any of enemy sprites
         collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
@@ -300,7 +302,8 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.camera_rect = camera
 
         # Position & speed attributes
-        self.x_pos, self.y_pos = fired_pos          # Initial position
+        self.x_pos = round(fired_pos[0] + self.camera_rect.left)            # Initial x position
+        self.y_pos = round(fired_pos[1] + self.camera_rect.top)             # Initial y position
         self.x_speed = speed * math.cos(angle)      # Derive speed of x/y direction from given speed and shooting angle
         self.y_speed = speed * math.sin(angle)
 
@@ -330,10 +333,12 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         all_sprites.add(self)
         player_projectiles.add(self)
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Update function for moving bullet sprite
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
 
@@ -396,9 +401,12 @@ class SpawnEffect(pygame.sprite.Sprite):
         all_sprites.add(self)
         spawneffect_group.add(self)
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Update(change) image for spawning animation at each frame.
+        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
 
@@ -447,9 +455,12 @@ class HitEffect(pygame.sprite.Sprite):
         all_sprites.add(self)
         hiteffect_group.add(self)
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Update(change) image for hitting animation at each frame.
+        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
 
@@ -506,9 +517,12 @@ class Explosion(pygame.sprite.Sprite):
         all_sprites.add(self)
         explosion_group.add(self)
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Update(change) image for hitting animation at each frame.
+        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
 
@@ -585,10 +599,12 @@ class StraightLineMover(pygame.sprite.Sprite):
         self.spawning = True
         self.spawneffect = SpawnEffect(self.camera_rect, [self.x_pos, self.y_pos], self.size)   # Generate spawneffect
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Move sprite by updating position. Does nothing until spawneffect animation ends.
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
 
@@ -759,9 +775,12 @@ class HPBar(pygame.sprite.Sprite):
         self.duration = 3                       # Only lasts for 3 secs, then disappeare after 3 secs
         self.generated_time = time.time()       # Generated time
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Update position and duration
+        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
 
@@ -838,10 +857,12 @@ class Coin(pygame.sprite.Sprite):
         all_sprites.add(self)
         coin_group.add(self)
 
-    def update(self, fps):
+    def update(self, fps, curspos, mouse_button_down):
         """
         Move sprite by updating position.
         :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
 
