@@ -74,8 +74,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Attributes for weapons
-        self.weapons = [PlayerMinigun(self.camera_rect)]        # List of all weapons currently equipped by player
         self.target_pos = [0, 0]                                # Target position to shoot, equivalent to cursor position
+        # Automatic weapon: Only aiming is controlled by mouse, and attacking will be done automatically
+        self.automatic_weapon = PlayerMinigun(self)
+        # Manual weapon: Both aiming and attacking are controlled by mouse movement and clicking
+        self.manual_weapon = PlayerEnergyCannonLauncher(self)
 
         # Death attribute
         self.dead = False
@@ -142,8 +145,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Use all equipped weapons
-        for weapon in self.weapons:
-            weapon.update(self.rect.center, self.target_pos)
+        self.automatic_weapon.update()
+        self.manual_weapon.update(mouse_button_down)
 
         # Check collision with any of enemy sprites
         collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
@@ -245,47 +248,47 @@ class PlayerMinigun:
     This is an abstract sprite and invisible on the screen.
     """
 
-    def __init__(self, camera):
-        self.camera_rect = camera               # camera attribute to give as a parameter of bullet class
+    def __init__(self, weapon_user: Player):
+        self.user = weapon_user                     # User of this weapon (player)
 
-        self.level = 1                          # Level of this weapon
-        self.pos = [0, 0]                       # Will follow player's position
-        self.target_pos = [0, 0]                # Will follow cursor position
+        self.camera_rect = self.user.camera_rect    # Camera attribute to give as a parameter of bullet class
 
-        self.attack_interval = .1               # 10 attacks/sec
-        self.last_attacked_time = time.time()   # A fixed timepoint to measure interval
+        self.level = 1                              # Level of this weapon
+        self.pos = [0, 0]                           # Will follow player's position
+        self.target_pos = [0, 0]                    # Will follow cursor position
+        self.aiming_angle = 0
 
-    def update(self, pos, target_pos):
+        self.attack_interval = .1                   # 10 attacks/sec
+        self.last_attacked_time = time.time()       # A fixed timepoint to measure interval
+
+    def update(self):
         """
         Update the target position and check firing interval.
-        :param pos: position of weapon's user(player sprite)
-        :param target_pos: target position to shoot at
         :return: None
         """
 
-        # update positions
-        self.pos = pos
-        self.target_pos = target_pos
+        # Update positions
+        self.pos = self.user.rect.center
+        self.target_pos = self.user.target_pos
 
-        # After attack interval, calculate shotting angle and call "attack" method
+        # After attack interval, calculate shooting angle and call "attack" method
         if time.time() - self.last_attacked_time >= self.attack_interval:
             relative_x = self.target_pos[0] - self.pos[0]
             relative_y = self.target_pos[1] - self.pos[1]
-            aiming_angle = math.atan2(relative_y, relative_x)
+            self.aiming_angle = math.atan2(relative_y, relative_x)
 
-            self.attack(aiming_angle)
+            self.attack()
             self.last_attacked_time = time.time()       # reset last_attacked_time to now
 
-    def attack(self, aiming_angle):
+    def attack(self):
         """
         Shoots bullet(s) every interval.
         Attack pattern depends on this weapon's level.
-        :param aiming_angle: direction to shoot in radians
         :return: None
         """
 
         if self.level == 1:
-            PlayerNormalBullet(self.camera_rect, self.pos, 600, aiming_angle, 1)
+            PlayerNormalBullet(self, 600, self.aiming_angle, 1)
 
 
 class PlayerNormalBullet(pygame.sprite.Sprite):
@@ -295,22 +298,25 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
     Killed(disappears) when collided with enemy sprites and gives damage to them.
     """
 
-    def __init__(self, camera, fired_pos, speed, angle, power):
+    def __init__(self, fired_weapon, speed, angle, power):
         pygame.sprite.Sprite.__init__(self)
 
-        # camera attribute to calculate relative position from screen
-        self.camera_rect = camera
+        # Weapon which fired this sprite
+        self.fired_weapon = fired_weapon
+
+        # Camera attribute to calculate relative position from screen
+        self.camera_rect = self.fired_weapon.camera_rect
 
         # Position & speed attributes
-        self.x_pos = round(fired_pos[0] + self.camera_rect.left)            # Initial x position
-        self.y_pos = round(fired_pos[1] + self.camera_rect.top)             # Initial y position
+        self.x_pos = round(self.fired_weapon.pos[0] + self.camera_rect.left)            # Initial x position
+        self.y_pos = round(self.fired_weapon.pos[1] + self.camera_rect.top)             # Initial y position
         self.x_speed = speed * math.cos(angle)      # Derive speed of x/y direction from given speed and shooting angle
         self.y_speed = speed * math.sin(angle)
 
         # Image & rect attributes
         self.size = [20, 10]
-        self.image_frame_list = player_normal_bullet_animation[::(60 // FPS)]        # Get image frames according to fps
-        self.n_frames = len(self.image_frame_list)                          # Number of frames
+        self.image_frame_list = player_normal_bullet_animation[::(60 // FPS)]           # Get image frames according to fps
+        self.n_frames = len(self.image_frame_list)                                      # Number of frames
 
         # Rotate image towards moving direction
         for n in range(self.n_frames):
@@ -350,10 +356,11 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
         if collided_enemies:                # If one or more sprite collided with bullet
             enemy = collided_enemies[0]     # Only one enemy sprite will get damaged (Because bullet cannot deal splash damage).
+
             # Damage value will be random, but has current power as mean value.
             damage = self.power * random.uniform(0.5, 1.5)
             enemy.get_damage(damage)
-            HitEffect(self.camera_rect, [self.x_pos, self.y_pos])       # Generate hiteffect
+            HitEffect(self)                 # Generate hiteffect
             self.kill()                     # Delete the bullet after collision
 
         # Move bullet
@@ -364,6 +371,237 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # Delete the bullet sprite when it goes too far from the center of screen
         if get_distance([screen_width // 2, screen_height // 2], self.rect.center) > 1500:
             self.kill()
+
+
+class PlayerEnergyCannonLauncher:
+    """
+    A weapon class which player sprite can use.
+    Shoots large, exploding energy cannonball one by one.
+    This is an abstract sprite and invisible on the screen.
+    """
+
+    def __init__(self, weapon_user: Player):
+        self.user = weapon_user                     # User of this weapon (player)
+
+        self.camera_rect = self.user.camera_rect    # camera attribute to give as a parameter of cannonball class
+
+        self.level = 1                              # Level of this weapon
+        self.pos = [0, 0]                           # Will follow player's position
+        self.target_pos = [0, 0]                    # Will follow cursor position
+        self.aiming_angle = 0
+
+        # Attributes for timing control of charging cannonball
+        self.holding_cannonball = None                      # Will be PlayerEnergyCannonBall class instance if a cannonball is generated
+        self.max_cannonball_holding_frame_count = 2 * FPS   # Max length of cannonball charging time (up to 2 seconds)
+        self.current_cannonball_holding_frame = 0           # To measure length of cannonball charging time
+
+        # Attributes for cooling down weapon
+        self.overheated = False             # Can fire cannonball only if not overheated
+        self.cooltime_frame_count = 0       # Length of time for cooling down weapon, will be determined by the length of time for charging
+        self.current_cooltime_frame = 0     # To measure length of cooldown time
+
+    def update(self, mouse_button_down):
+        """
+        Update the target position and check mouse button hold.
+        :param mouse_button_down: to control weapon with mouse button held
+        :return: None
+        """
+
+        # Update positions
+        self.pos = self.user.rect.center
+        self.target_pos = self.user.target_pos
+
+        # Weapon control
+        # Cannot use weapon while overheated
+        if self.overheated:
+            self.current_cooltime_frame += 1                                    # Count on cooldown frames
+            if self.current_cooltime_frame >= self.cooltime_frame_count:        # If counting is complete
+                self.overheated = False                                         # Finish overheating
+
+        # Can use weapon while not overheated
+        else:
+            if not self.holding_cannonball and mouse_button_down:               # If mouse button pressed while not having cannonball
+                self.start_charging_cannonball()                                # Generate a cannonball
+            if self.holding_cannonball:                                         # Charging cannonball
+                self.current_cannonball_holding_frame += 1                      # Count on charging frames
+
+                # If mouse button released or counting is complete or player is out of MP
+                if not mouse_button_down or \
+                        self.current_cannonball_holding_frame >= self.max_cannonball_holding_frame_count or \
+                        self.user.mp <= 0:
+                    self.release_cannonball()                                   # Release cannonball
+
+    def start_charging_cannonball(self):
+        """
+        Generate a cannonball.
+        self.holding_cannonball attribute will be changed from None to PlayerEnergyCannonBall class instance.
+        :return: None
+        """
+
+        if self.level == 1:
+            self.holding_cannonball = PlayerEnergyCannonBall(self, 600, 150)
+
+    def release_cannonball(self):
+        """
+        Give cannonball speed and direction and release cannonball to that direction.
+        :return: None
+        """
+
+        # Calculate shooting angle and speed and give them to cannonball
+        relative_x = self.target_pos[0] - self.pos[0]
+        relative_y = self.target_pos[1] - self.pos[1]
+        self.aiming_angle = math.atan2(relative_y, relative_x)
+
+        # Release cannonball
+        self.holding_cannonball.set_direction(self.aiming_angle)
+
+        # Calculate cooldown time according to the length of time for charging the cannonball
+        self.cooltime_frame_count = round(4 * FPS * self.holding_cannonball.power / self.holding_cannonball.max_power)
+        self.holding_cannonball = None                  # Now weapon holds no cannonball
+        self.overheated = True                          # Player cannot use this weapon until overheating ends
+        self.current_cannonball_holding_frame = 0       # Initialize frame counter for cannonball holding
+        self.current_cooltime_frame = 0                 # Initialize frame counter for cooling down weapon
+
+
+class PlayerEnergyCannonBall(pygame.sprite.Sprite):
+    """
+    A bullet class shot from PlayerEnergyCannonLauncher class.
+    Moves straight line from the player to aimed direction.
+    Killed(disappears) when collided with enemy sprites and gives direct damage to them with multiple explosion effect.
+    It also attacks enemies within a specified range giving splash damage.
+    """
+
+    def __init__(self, fired_weapon, speed, max_power):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Weapon which fired this sprite
+        self.fired_weapon = fired_weapon
+
+        # Camera attribute to calculate relative position from screen
+        self.camera_rect = self.fired_weapon.camera_rect
+
+        # Position & speed attributes
+        self.x_pos = round(self.fired_weapon.pos[0] + self.camera_rect.left)            # Initial x position
+        self.y_pos = round(self.fired_weapon.pos[1] + self.camera_rect.top)             # Initial y position
+        self.speed = speed
+        self.x_speed = self.y_speed = 0
+
+        # Image & rect attributes
+        self.size = [5, 5]
+        self.image_frame_list = player_energy_cannonball_animation[::(60 // FPS)]       # Get image frames according to fps
+        self.n_frames = len(self.image_frame_list)                                      # Number of frames
+        self.current_frame_num = 0                                                      # Variable for counting frames
+        self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
+        self.rect = self.image.get_rect()
+        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+
+        # Maximum attributes of cannonball
+        self.max_power = max_power                                  # Maximum power the cannonball can have when fully charged
+        self.max_size = [60, 60]
+
+        # Per-frame attributes: increment amount per frame while charging
+        self.power_charging_increment = self.max_power / (2 * FPS)                      # Power increasing speed
+        self.size_charging_increment = (self.max_size[0] - self.size[0]) / (2 * FPS)    # Size increasing speed
+        self.charging_mp = self.max_power / (6 * FPS)                                   # MP decreasing speed
+
+        # Damage dealt to enemy
+        self.power = self.power_charging_increment
+        self.shock_range = self.power * 2               # Range of splash damage, proportional to power
+
+        # Boolean attribute for charging
+        self.charging = True
+
+        # Automatically add self to sprite groups
+        all_sprites.add(self)
+        player_projectiles.add(self)
+
+    def update(self, fps, curspos, mouse_button_down):
+        """
+        Move cannonball by updating position.
+        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
+        :return: None
+        """
+
+        # Blink the image of cannonball
+        self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num % self.n_frames], [round(self.size[0]), round(self.size[1])])
+        self.current_frame_num += 1
+
+        # Cannonball control
+        # Fixed to the position of weapon(or player) while charging
+        if self.charging:
+            # Increase power and shock range
+            self.power += self.power_charging_increment
+            self.shock_range = self.power * 2
+
+            # Increase size
+            self.size[0] += self.size_charging_increment
+            self.size[1] += self.size_charging_increment
+
+            # Fix the position to the center of weapon(or player) while charging
+            self.x_pos = round(self.fired_weapon.pos[0] + self.camera_rect.left)
+            self.y_pos = round(self.fired_weapon.pos[1] + self.camera_rect.top)
+            self.rect = self.image.get_rect(center=[round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)])
+
+            # Decrease MP of player
+            self.fired_weapon.user.mp -= self.charging_mp
+
+        # Move cannonball if released
+        else:
+            # Move cannonball and update position on screen
+            self.x_pos += self.x_speed / fps
+            self.y_pos += self.y_speed / fps
+            self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+
+        # Attack enemies
+        # Check collision with any of enemy sprites
+        collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)
+
+        # If one or more enemy sprites touches cannonball
+        if collided_enemies:
+            # Apply full damage of cannonball on enemy which directly collided with cannonball
+            collided_enemies[0].get_damage(self.power)
+
+            # Applying splash damage on nearby enemies within shock range
+            current_shock_range = self.shock_range
+
+            # Check all enemy sprites whether it is in the shock range
+            for enemy in all_enemies:
+                distance_from_explosion = get_distance(self.rect.center, enemy.rect.center)     # Distance from cannonball to enemy
+
+                # Apply partial damage of cannonball on all enemy sprites in the shock range
+                if distance_from_explosion <= current_shock_range:
+                    damage = (current_shock_range - distance_from_explosion) * self.power / current_shock_range
+                    enemy.get_damage(damage)
+
+            # Generate cluster explosion effect
+            Explosion(self, [round(s * 8) for s in self.size])                          # Generate center explosion first
+
+            # Generate additional explosions
+            for _ in range(round(current_shock_range ** 2 / 20000)):                    # Number of explosions will be determined by the density of explosion
+                size_multiplier = random.uniform(4, 8)                                  # Random size of explosion
+                x_offset = random.uniform(-current_shock_range, current_shock_range)    # Random position of explosion (offset from center)
+                y_offset = random.uniform(-current_shock_range, current_shock_range)
+                Explosion(self, [round(s * size_multiplier) for s in self.size], offset=(x_offset, y_offset))   # Generate explosion with offset
+
+            # Delete cannonball
+            self.kill()
+
+        # Delete the cannonball sprite when it goes too far from the center of screen
+        if get_distance([screen_width // 2, screen_height // 2], self.rect.center) > 1500:
+            self.kill()
+
+    def set_direction(self, angle):
+        """
+        Calculate speed for x and y direction of cannonball and start moving.
+        :param angle: direction to move
+        :return: None
+        """
+
+        self.x_speed = self.speed * math.cos(angle)
+        self.y_speed = self.speed * math.sin(angle)
+        self.charging = False       # Complete charging
 
 
 class SpawnEffect(pygame.sprite.Sprite):
@@ -427,17 +665,20 @@ class SpawnEffect(pygame.sprite.Sprite):
 
 class HitEffect(pygame.sprite.Sprite):
     """
-    An effect sprite generated when a bullet collide with enemy sprite
+    An effect sprite generated when a bullet collide with enemy or player sprite
     """
 
-    def __init__(self, camera, pos):
+    def __init__(self, trigger_sprite):
         pygame.sprite.Sprite.__init__(self)
 
+        # Bullet sprite generating this effect
+        self.trigger_sprite = trigger_sprite
+
         # Camera attribute to calculate relative position from screen
-        self.camera_rect = camera
+        self.camera_rect = self.trigger_sprite.camera_rect
 
         # Set position
-        self.x_pos, self.y_pos = pos        # Hiteffect's field position given by bullet collided with enemy sprite
+        self.x_pos, self.y_pos = self.trigger_sprite.x_pos, self.trigger_sprite.y_pos        # Hiteffect's field position given by bullet collided with enemy sprite
 
         # Size & image attributes
         self.size = [48, 48]
@@ -483,14 +724,18 @@ class Explosion(pygame.sprite.Sprite):
     An effect sprite generated when a enemy sprite killed or large projectiles (cannonballs, rockets, etc) exploded
     """
 
-    def __init__(self, camera, pos, size):
+    def __init__(self, trigger_sprite, size, offset=(0, 0)):
         pygame.sprite.Sprite.__init__(self)
 
+        # Projectile or enemy sprite generating this effect
+        self.trigger_sprite = trigger_sprite
+        self.offset = int(isinstance(self.trigger_sprite, PlayerEnergyCannonBall)) * (field_width // 2)
+
         # Camera attribute to calculate relative position from screen
-        self.camera_rect = camera
+        self.camera_rect = self.trigger_sprite.camera_rect
 
         # Set position
-        self.x_pos, self.y_pos = pos        # Explosion's field position given by bullet collided with enemy sprite
+        self.x_pos, self.y_pos = self.trigger_sprite.x_pos + offset[0], self.trigger_sprite.y_pos + offset[1]        # Explosion's field position given by bullet collided with enemy sprite
 
         # Size & image attributes
         self.size = size
@@ -510,8 +755,8 @@ class Explosion(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Calculate the explosion's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + self.offset) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery + self.offset) % field_height + screen_height // 2 - field_height // 2
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -527,8 +772,8 @@ class Explosion(pygame.sprite.Sprite):
         """
 
         # Calculate the explosions's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + self.offset) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - self.camera_rect.centery + self.offset) % field_height + screen_height // 2 - field_height // 2
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -677,7 +922,7 @@ class StraightLineMover(pygame.sprite.Sprite):
 
         # Generate explosion animation twice as big as self, then killed
         explode_size = [self.size[0] * 3, self.size[1] * 3]
-        Explosion(self.camera_rect, [self.x_pos, self.y_pos], explode_size)
+        Explosion(self, explode_size)
         self.kill()
 
 

@@ -52,6 +52,13 @@ for i in range(4):
     new_frame.set_colorkey((255, 255, 255))         # Make white background invisible(transparent)
     player_normal_bullet_animation.append(new_frame)
 
+# Load image for PlayerEnergyCannonBall sprite
+player_energy_cannonball_animation = []
+for i in range(4):
+    new_frame = pygame.image.load("img/projectiles/player_energy_cannonball{}.png".format(i // 2)).convert()
+    new_frame.set_colorkey((255, 255, 255))         # Make white background invisible(transparent)
+    player_energy_cannonball_animation.append(new_frame)
+
 # Load 64 image frames for animating spawneffect
 spawneffect_animation = []
 for i in range(8):
