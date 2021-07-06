@@ -392,13 +392,12 @@ class PlayerEnergyCannonLauncher:
 
         # Attributes for timing control of charging cannonball
         self.holding_cannonball = None                      # Will be PlayerEnergyCannonBall class instance if a cannonball is generated
-        self.max_cannonball_holding_frame_count = 2 * FPS   # Max length of cannonball charging time (up to 2 seconds)
-        self.current_cannonball_holding_frame = 0           # To measure length of cannonball charging time
+        self.remaining_cannonball_holding_frame = 2 * FPS   # To measure remaining length of cannonball charging time (max: 2 seconds)
 
         # Attributes for cooling down weapon
-        self.overheated = False             # Can fire cannonball only if not overheated
-        self.cooltime_frame_count = 0       # Length of time for cooling down weapon, will be determined by the length of time for charging
-        self.current_cooltime_frame = 0     # To measure length of cooldown time
+        self.overheated = False                     # Can fire cannonball only if not overheated
+        self.max_cooltime_frame_count = 4 * FPS     # Max length of time for cooling down weapon
+        self.remaining_cooltime_frames = 0          # To measure remaining length of cooldown time
 
     def update(self, mouse_button_down):
         """
@@ -414,21 +413,19 @@ class PlayerEnergyCannonLauncher:
         # Weapon control
         # Cannot use weapon while overheated
         if self.overheated:
-            self.current_cooltime_frame += 1                                    # Count on cooldown frames
-            if self.current_cooltime_frame >= self.cooltime_frame_count:        # If counting is complete
-                self.overheated = False                                         # Finish overheating
+            self.remaining_cooltime_frames -= 1         # Count on cooldown frames
+            if self.remaining_cooltime_frames <= 0:     # If counting is complete
+                self.overheated = False                 # Finish overheating
 
         # Can use weapon while not overheated
         else:
             if not self.holding_cannonball and mouse_button_down:               # If mouse button pressed while not having cannonball
                 self.start_charging_cannonball()                                # Generate a cannonball
             if self.holding_cannonball:                                         # Charging cannonball
-                self.current_cannonball_holding_frame += 1                      # Count on charging frames
+                self.remaining_cannonball_holding_frame -= 1                    # Count on charging frames
 
                 # If mouse button released or counting is complete or player is out of MP
-                if not mouse_button_down or \
-                        self.current_cannonball_holding_frame >= self.max_cannonball_holding_frame_count or \
-                        self.user.mp <= 0:
+                if not mouse_button_down or self.remaining_cannonball_holding_frame <= 0 or self.user.mp <= 0:
                     self.release_cannonball()                                   # Release cannonball
 
     def start_charging_cannonball(self):
@@ -456,11 +453,10 @@ class PlayerEnergyCannonLauncher:
         self.holding_cannonball.set_direction(self.aiming_angle)
 
         # Calculate cooldown time according to the length of time for charging the cannonball
-        self.cooltime_frame_count = round(4 * FPS * self.holding_cannonball.power / self.holding_cannonball.max_power)
-        self.holding_cannonball = None                  # Now weapon holds no cannonball
-        self.overheated = True                          # Player cannot use this weapon until overheating ends
-        self.current_cannonball_holding_frame = 0       # Initialize frame counter for cannonball holding
-        self.current_cooltime_frame = 0                 # Initialize frame counter for cooling down weapon
+        self.remaining_cooltime_frames = round(4 * FPS * self.holding_cannonball.power / self.holding_cannonball.max_power)
+        self.holding_cannonball = None                      # Now weapon holds no cannonball
+        self.overheated = True                              # Player cannot use this weapon until overheating ends
+        self.remaining_cannonball_holding_frame = 2 * FPS   # Initialize frame counter for cannonball holding
 
 
 class PlayerEnergyCannonBall(pygame.sprite.Sprite):

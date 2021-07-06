@@ -348,6 +348,15 @@ class PlayerMPBar(BoundedBar):
         BoundedBar.__init__(self, pygame.Rect([30, 60, 300, 20]), target_value, (0, 0, 0), (0, 255, 255), (255, 255, 255))
 
 
+class PlayerManualWeaponCoolTimeBar(BoundedBar):
+    """
+    A child class of BoundedBar to display remaining cooling time of manual weapon of player
+    """
+
+    def __init__(self, target_value):
+        BoundedBar.__init__(self, pygame.Rect([30, 80, 300, 10]), target_value, (0, 0, 0), (255, 0, 0), (255, 255, 255))
+
+
 class GamePlayScreen:
     """
     A screen class to display game play screen
@@ -363,9 +372,10 @@ class GamePlayScreen:
         self.player = Player(camera_rect)
         self.target_pointer = TargetPointer()
 
-        # Player HP & MP bar instances
+        # Player HP, MP & manual weapon cooltime bar instances
         self.player_hp_bar = PlayerHPBar(self.player.full_hp)
         self.player_mp_bar = PlayerMPBar(self.player.full_mp)
+        self.player_manual_weapon_cooltime_bar = PlayerManualWeaponCoolTimeBar(self.player.manual_weapon.max_cooltime_frame_count)
 
         # Boolean attribute whether display game play screen or not
         self.now_display = False
@@ -395,9 +405,10 @@ class GamePlayScreen:
         if len(straight_line_mover3_group) < 30:
             StraightLineMover3(camera_rect)
 
-        # Update player HP & MP bars
+        # Update player HP, MP & manual weapon cooltime bars
         self.player_hp_bar.update(self.player.hp)
         self.player_mp_bar.update(self.player.mp)
+        self.player_manual_weapon_cooltime_bar.update(self.player.manual_weapon.remaining_cooltime_frames)
 
         # Show game over screen if player dies
         if self.player.dead:
@@ -426,9 +437,10 @@ class GamePlayScreen:
         hp_bar_group.draw(surface)          # Draw all HP bar of enemy sprites
         target_pointer_group.draw(surface)  # Draw target pointer
 
-        # Draw player HP & MP bars
+        # Draw player HP, MP & manual weapon cooltime bars
         self.player_hp_bar.draw(surface)
         self.player_mp_bar.draw(surface)
+        self.player_manual_weapon_cooltime_bar.draw(surface)
 
     def show(self):
         """
