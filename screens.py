@@ -390,7 +390,7 @@ class GamePlayScreen:
         self.background.update()
 
         # Update all sprites
-        all_sprites.update(FPS, curspos, mouse_button_down)
+        all_sprites.update(curspos, mouse_button_down)
         self.player.aim(curspos)
         self.target_pointer.update(curspos)
 

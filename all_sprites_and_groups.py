@@ -87,12 +87,11 @@ class Player(pygame.sprite.Sprite):
         all_sprites.add(self)
         player_group.add(self)
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Update function for moving player sprite, using weapons per frame
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :return: None
         """
 
@@ -128,20 +127,20 @@ class Player(pygame.sprite.Sprite):
         # Increment or decrement x/y direction speed
         # Do not accelerate when current speed is near 0. (-acc/2 <= speed <= acc/2)
         # for x direction
-        if self.x_speed < self.max_x_speed - self.acc / (2 * fps):
-            self.x_speed += self.acc / fps
-        elif self.x_speed > self.max_x_speed + self.acc / (2 * fps):
-            self.x_speed -= self.acc / fps
+        if self.x_speed < self.max_x_speed - self.acc / (2 * FPS):
+            self.x_speed += self.acc / FPS
+        elif self.x_speed > self.max_x_speed + self.acc / (2 * FPS):
+            self.x_speed -= self.acc / FPS
         # for y direction
-        if self.y_speed < self.max_y_speed - self.acc / (2 * fps):
-            self.y_speed += self.acc / fps
-        elif self.y_speed > self.max_y_speed + self.acc / (2 * fps):
-            self.y_speed -= self.acc / fps
+        if self.y_speed < self.max_y_speed - self.acc / (2 * FPS):
+            self.y_speed += self.acc / FPS
+        elif self.y_speed > self.max_y_speed + self.acc / (2 * FPS):
+            self.y_speed -= self.acc / FPS
 
         # Move the position of player according to current speed (per FPS)
         # And set the actual position on the screen with respect to camera position
-        self.x_pos += self.x_speed / fps
-        self.y_pos += self.y_speed / fps
+        self.x_pos += self.x_speed / FPS
+        self.y_pos += self.y_speed / FPS
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Use all equipped weapons
@@ -161,8 +160,8 @@ class Player(pygame.sprite.Sprite):
                 self.coins += coin.coin_amount
 
         # HP & MP regeneration
-        self.hp = min(self.full_hp, self.hp + self.full_hp / (100 * fps))
-        self.mp = min(self.full_mp, self.mp + self.full_mp / (150 * fps))
+        self.hp = min(self.full_hp, self.hp + self.full_hp / (100 * FPS))
+        self.mp = min(self.full_mp, self.mp + self.full_mp / (150 * FPS))
 
         # Get score update
         self.update_score()
@@ -339,10 +338,9 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         all_sprites.add(self)
         player_projectiles.add(self)
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Update function for moving bullet sprite
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -364,8 +362,8 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
             self.kill()                     # Delete the bullet after collision
 
         # Move bullet
-        self.x_pos += self.x_speed / fps
-        self.y_pos += self.y_speed / fps
+        self.x_pos += self.x_speed / FPS
+        self.y_pos += self.y_speed / FPS
         self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Delete the bullet sprite when it goes too far from the center of screen
@@ -511,10 +509,9 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
         all_sprites.add(self)
         player_projectiles.add(self)
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self,  curspos, mouse_button_down):
         """
         Move cannonball by updating position.
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -546,8 +543,8 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
         # Move cannonball if released
         else:
             # Move cannonball and update position on screen
-            self.x_pos += self.x_speed / fps
-            self.y_pos += self.y_speed / fps
+            self.x_pos += self.x_speed / FPS
+            self.y_pos += self.y_speed / FPS
             self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
 
         # Attack enemies
@@ -635,10 +632,9 @@ class SpawnEffect(pygame.sprite.Sprite):
         all_sprites.add(self)
         spawneffect_group.add(self)
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Update(change) image for spawning animation at each frame.
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -692,10 +688,9 @@ class HitEffect(pygame.sprite.Sprite):
         all_sprites.add(self)
         hiteffect_group.add(self)
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Update(change) image for hitting animation at each frame.
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -758,10 +753,9 @@ class Explosion(pygame.sprite.Sprite):
         all_sprites.add(self)
         explosion_group.add(self)
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Update(change) image for hitting animation at each frame.
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -840,10 +834,9 @@ class StraightLineMover(pygame.sprite.Sprite):
         self.spawning = True
         self.spawneffect = SpawnEffect(self.camera_rect, [self.x_pos, self.y_pos], self.size)   # Generate spawneffect
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Move sprite by updating position. Does nothing until spawneffect animation ends.
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -871,8 +864,8 @@ class StraightLineMover(pygame.sprite.Sprite):
                     self.image = self.image_list[self.current_imagenum]     # Set the image according to imagenum
 
             # Update position
-            self.x_pos += self.x_speed / fps
-            self.y_pos += self.y_speed / fps
+            self.x_pos += self.x_speed / FPS
+            self.y_pos += self.y_speed / FPS
 
         # Calculate the sprite's actual position on screen using camera center position
         self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
@@ -1016,10 +1009,9 @@ class HPBar(pygame.sprite.Sprite):
         self.duration = 3                       # Only lasts for 3 secs, then disappeare after 3 secs
         self.generated_time = time.time()       # Generated time
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Update position and duration
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -1098,10 +1090,9 @@ class Coin(pygame.sprite.Sprite):
         all_sprites.add(self)
         coin_group.add(self)
 
-    def update(self, fps, curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Move sprite by updating position.
-        :param fps: for calculating moving distance per frame in pixels (speed(px/sec) / fps(frame/sec) = pixels per frame(px/frame))
         :param curspos: current cursor position on screen
         :param mouse_button_down: variable to check holding mouse button
         :return: None
@@ -1109,15 +1100,15 @@ class Coin(pygame.sprite.Sprite):
 
         # Scattering - After the death of enemy sprite, starts at high speed, then slows down and stop on the field
         if not self.scattered:
-            self.x_speed += self.x_acc / fps
-            self.y_speed += self.y_acc / fps
+            self.x_speed += self.x_acc / FPS
+            self.y_speed += self.y_acc / FPS
         if abs(self.x_speed) < 60 or self.attracted:
             self.x_acc = self.y_acc = 0
             self.x_speed = self.y_speed = 0
             self.scattered = True
 
-        self.x_pos += self.x_speed / fps
-        self.y_pos += self.y_speed / fps
+        self.x_pos += self.x_speed / FPS
+        self.y_pos += self.y_speed / FPS
 
         # Calculate the sprite's actual position on screen using camera center position
         self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
