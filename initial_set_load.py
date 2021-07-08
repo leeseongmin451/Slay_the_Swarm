@@ -24,9 +24,9 @@ screen_width, screen_height = 1920, 1080
 flags = FULLSCREEN | DOUBLEBUF
 screen = pygame.display.set_mode((screen_width, screen_height), flags, 16)
 
-# Define entire field size and initial camera position
+# Define entire field size and initial camera offset
 field_width = field_height = 5000
-camera_rect = pygame.Rect(field_width // 4 - screen_width // 2, field_height // 4 - screen_height // 2, screen_width, screen_height)
+camera_offset = [0, 0]
 
 # frame control
 FPS = 60

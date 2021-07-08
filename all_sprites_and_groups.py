@@ -30,11 +30,8 @@ class Player(pygame.sprite.Sprite):
     A player class which user can control
     """
 
-    def __init__(self, camera):
+    def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-
-        # camera attribute following the player
-        self.camera_rect = camera
 
         # Attributes related to HP and dealing with damage event
         self.full_hp = 100
@@ -56,7 +53,7 @@ class Player(pygame.sprite.Sprite):
         # Position, Speed & acceleration attribute
         # Unit of speed: pixel/sec
         # Unit of acceleration: pixel/sec^2
-        self.x_pos = self.y_pos = 0
+        self.x_pos, self.y_pos = screen_width // 2, screen_height // 2          # Same as the camrea center position
         self.max_speed = 360
         self.speed = 0
         self.max_x_speed = self.max_y_speed = 0
@@ -71,7 +68,7 @@ class Player(pygame.sprite.Sprite):
         self.current_imagenum = 0
         self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
         self.rect = self.image.get_rect()
-        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+        self.rect.center = [round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])]
 
         # Attributes for weapons
         self.target_pos = [0, 0]                                # Target position to shoot, equivalent to cursor position
@@ -141,7 +138,7 @@ class Player(pygame.sprite.Sprite):
         # And set the actual position on the screen with respect to camera position
         self.x_pos += self.x_speed / FPS
         self.y_pos += self.y_speed / FPS
-        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+        self.rect.center = [round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])]
 
         # Use all equipped weapons
         self.automatic_weapon.update()
@@ -176,6 +173,11 @@ class Player(pygame.sprite.Sprite):
         self.target_pos = target_pos
 
     def get_pos(self):
+        """
+        Returns player's position in field
+        :return: player's position in field
+        """
+
         return self.x_pos, self.y_pos
 
     def set_pos(self, pos):
@@ -250,8 +252,6 @@ class PlayerMinigun:
     def __init__(self, weapon_user: Player):
         self.user = weapon_user                     # User of this weapon (player)
 
-        self.camera_rect = self.user.camera_rect    # Camera attribute to give as a parameter of bullet class
-
         self.level = 1                              # Level of this weapon
         self.pos = [0, 0]                           # Will follow player's position
         self.target_pos = [0, 0]                    # Will follow cursor position
@@ -303,12 +303,9 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # Weapon which fired this sprite
         self.fired_weapon = fired_weapon
 
-        # Camera attribute to calculate relative position from screen
-        self.camera_rect = self.fired_weapon.camera_rect
-
         # Position & speed attributes
-        self.x_pos = round(self.fired_weapon.pos[0] + self.camera_rect.left)            # Initial x position
-        self.y_pos = round(self.fired_weapon.pos[1] + self.camera_rect.top)             # Initial y position
+        self.x_pos = round(self.fired_weapon.pos[0] + camera_offset[0])            # Initial x position
+        self.y_pos = round(self.fired_weapon.pos[1] + camera_offset[1])            # Initial y position
         self.x_speed = speed * math.cos(angle)      # Derive speed of x/y direction from given speed and shooting angle
         self.y_speed = speed * math.sin(angle)
 
@@ -329,7 +326,10 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.current_frame_num = 0                                          # Variable for counting frames
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], [self.rotated_image_w // 2, self.rotated_image_h // 2])   # Get first image to display
         self.rect = self.image.get_rect()
-        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+
+        # Set the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0])
+        self.rect.centery = round(self.y_pos - camera_offset[1])
 
         # Damage dealt to enemy
         self.power = power
@@ -337,6 +337,9 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         # Automatically add self to sprite groups
         all_sprites.add(self)
         player_projectiles.add(self)
+
+        # Check how many frames the bullet existed
+        self.frames = 1
 
     def update(self, curspos, mouse_button_down):
         """
@@ -350,25 +353,32 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num % self.n_frames], [self.rotated_image_w // 2, self.rotated_image_h // 2])
         self.current_frame_num += 1
 
-        # Check collision with any of enemy sprites
-        collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
-        if collided_enemies:                # If one or more sprite collided with bullet
-            enemy = collided_enemies[0]     # Only one enemy sprite will get damaged (Because bullet cannot deal splash damage).
+        if self.frames >= 5:
+            # Check collision with any of enemy sprites for bullets existed at least 5 frames
+            collided_enemies = pygame.sprite.spritecollide(self, all_enemies, False)    # Check collision with enemy sprite
+            if collided_enemies:                # If one or more sprite collided with bullet
+                enemy = collided_enemies[0]     # Only one enemy sprite will get damaged (Because bullet cannot deal splash damage).
 
-            # Damage value will be random, but has current power as mean value.
-            damage = self.power * random.uniform(0.5, 1.5)
-            enemy.get_damage(damage)
-            HitEffect(self)                 # Generate hiteffect
-            self.kill()                     # Delete the bullet after collision
+                # Damage value will be random, but has current power as mean value.
+                damage = self.power * random.uniform(0.5, 1.5)
+                enemy.get_damage(damage)
+                HitEffect(self)                 # Generate hiteffect
+                self.kill()                     # Delete the bullet after collision
 
         # Move bullet
         self.x_pos += self.x_speed / FPS
         self.y_pos += self.y_speed / FPS
-        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+
+        # Update the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0])
+        self.rect.centery = round(self.y_pos - camera_offset[1])
 
         # Delete the bullet sprite when it goes too far from the center of screen
         if get_distance([screen_width // 2, screen_height // 2], self.rect.center) > 1500:
             self.kill()
+
+        # Increase existed frames of this bullet
+        self.frames += 1
 
 
 class PlayerEnergyCannonLauncher:
@@ -380,8 +390,6 @@ class PlayerEnergyCannonLauncher:
 
     def __init__(self, weapon_user: Player):
         self.user = weapon_user                     # User of this weapon (player)
-
-        self.camera_rect = self.user.camera_rect    # camera attribute to give as a parameter of cannonball class
 
         self.level = 1                              # Level of this weapon
         self.pos = [0, 0]                           # Will follow player's position
@@ -471,12 +479,9 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
         # Weapon which fired this sprite
         self.fired_weapon = fired_weapon
 
-        # Camera attribute to calculate relative position from screen
-        self.camera_rect = self.fired_weapon.camera_rect
-
         # Position & speed attributes
-        self.x_pos = round(self.fired_weapon.pos[0] + self.camera_rect.left)            # Initial x position
-        self.y_pos = round(self.fired_weapon.pos[1] + self.camera_rect.top)             # Initial y position
+        self.x_pos = round(self.fired_weapon.pos[0] + camera_offset[0])             # Initial x position
+        self.y_pos = round(self.fired_weapon.pos[1] + camera_offset[1])             # Initial y position
         self.speed = speed
         self.x_speed = self.y_speed = 0
 
@@ -487,11 +492,11 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
         self.current_frame_num = 0                                                      # Variable for counting frames
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
         self.rect = self.image.get_rect()
-        self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+        self.rect.center = [round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])]
 
         # Maximum attributes of cannonball
-        self.max_power = max_power                                  # Maximum power the cannonball can have when fully charged
-        self.max_size = [60, 60]
+        self.max_power = max_power      # Maximum power the cannonball can have when fully charged
+        self.max_size = [60, 60]        # Maximum size the cannonball can have when fully charged
 
         # Per-frame attributes: increment amount per frame while charging
         self.power_charging_increment = self.max_power / (2 * FPS)                      # Power increasing speed
@@ -509,7 +514,7 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
         all_sprites.add(self)
         player_projectiles.add(self)
 
-    def update(self,  curspos, mouse_button_down):
+    def update(self, curspos, mouse_button_down):
         """
         Move cannonball by updating position.
         :param curspos: current cursor position on screen
@@ -533,9 +538,9 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
             self.size[1] += self.size_charging_increment
 
             # Fix the position to the center of weapon(or player) while charging
-            self.x_pos = round(self.fired_weapon.pos[0] + self.camera_rect.left)
-            self.y_pos = round(self.fired_weapon.pos[1] + self.camera_rect.top)
-            self.rect = self.image.get_rect(center=[round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)])
+            self.x_pos = round(self.fired_weapon.pos[0] + camera_offset[0])
+            self.y_pos = round(self.fired_weapon.pos[1] + camera_offset[1])
+            self.rect = self.image.get_rect(center=[round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])])
 
             # Decrease MP of player
             self.fired_weapon.user.mp -= self.charging_mp
@@ -545,7 +550,10 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
             # Move cannonball and update position on screen
             self.x_pos += self.x_speed / FPS
             self.y_pos += self.y_speed / FPS
-            self.rect.center = [round(self.x_pos - self.camera_rect.left), round(self.y_pos - self.camera_rect.top)]
+
+        # Update the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0])
+        self.rect.centery = round(self.y_pos - camera_offset[1])
 
         # Attack enemies
         # Check collision with any of enemy sprites
@@ -602,11 +610,8 @@ class SpawnEffect(pygame.sprite.Sprite):
     An effect sprite generated right before an enemy appears.
     """
 
-    def __init__(self, camera, pos, size):
+    def __init__(self, pos, size):
         pygame.sprite.Sprite.__init__(self)
-
-        # Camera attribute to calculate relative position from screen
-        self.camera_rect = camera
 
         # Set position
         self.x_pos, self.y_pos = pos        # Spawneffect's field position given by sprite to be generated
@@ -619,9 +624,9 @@ class SpawnEffect(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
         self.rect = self.image.get_rect()
 
-        # Calculate the spawneffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        # Update the sprite's screen position using foeld position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
 
         # Attribute for check whether spawning animation is over
         # This attribute will be referenced by the enemy sprite generated from this spawneffect.
@@ -640,9 +645,9 @@ class SpawnEffect(pygame.sprite.Sprite):
         :return: None
         """
 
-        # Calculate the spawneffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        # Update the sprite's screen position using foeld position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -664,13 +669,7 @@ class HitEffect(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
         # Bullet sprite generating this effect
-        self.trigger_sprite = trigger_sprite
-
-        # Camera attribute to calculate relative position from screen
-        self.camera_rect = self.trigger_sprite.camera_rect
-
-        # Set position
-        self.x_pos, self.y_pos = self.trigger_sprite.x_pos, self.trigger_sprite.y_pos        # Hiteffect's field position given by bullet collided with enemy sprite
+        self.trigger_sprite = trigger_sprite      # Hiteffect's field position given by bullet collided with enemy sprite
 
         # Size & image attributes
         self.size = [48, 48]
@@ -680,9 +679,13 @@ class HitEffect(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
         self.rect = self.image.get_rect()
 
-        # Calculate the hiteffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + field_width // 2) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery + field_height // 2) % field_height + screen_height // 2 - field_height // 2
+        # Define the sprite's screen position
+        self.rect.centerx = trigger_sprite.rect.centerx
+        self.rect.centery = trigger_sprite.rect.centery
+
+        # Calculate field position using screen position and camera offset
+        self.x_pos = self.rect.centerx + camera_offset[0]
+        self.y_pos = self.rect.centery + camera_offset[1]
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -696,9 +699,9 @@ class HitEffect(pygame.sprite.Sprite):
         :return: None
         """
 
-        # Calculate the hiteffect's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + field_width // 2) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery + field_height // 2) % field_height + screen_height // 2 - field_height // 2
+        # Update the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0])
+        self.rect.centery = round(self.y_pos - camera_offset[1])
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -720,13 +723,6 @@ class Explosion(pygame.sprite.Sprite):
 
         # Projectile or enemy sprite generating this effect
         self.trigger_sprite = trigger_sprite
-        self.offset = int(isinstance(self.trigger_sprite, PlayerEnergyCannonBall)) * (field_width // 2)
-
-        # Camera attribute to calculate relative position from screen
-        self.camera_rect = self.trigger_sprite.camera_rect
-
-        # Set position
-        self.x_pos, self.y_pos = self.trigger_sprite.x_pos + offset[0], self.trigger_sprite.y_pos + offset[1]        # Explosion's field position given by bullet collided with enemy sprite
 
         # Size & image attributes
         self.size = size
@@ -745,9 +741,13 @@ class Explosion(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.shockwave_size)       # Get first image(shockwave) to display
         self.rect = self.image.get_rect()
 
-        # Calculate the explosion's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + self.offset) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery + self.offset) % field_height + screen_height // 2 - field_height // 2
+        # Define the sprite's screen position
+        self.rect.centerx = trigger_sprite.rect.centerx + offset[0]
+        self.rect.centery = trigger_sprite.rect.centery + offset[1]
+
+        # Calculate field position using screen position and camera offset
+        self.x_pos = self.rect.centerx + camera_offset[0]
+        self.y_pos = self.rect.centery + camera_offset[1]
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -761,9 +761,9 @@ class Explosion(pygame.sprite.Sprite):
         :return: None
         """
 
-        # Calculate the explosions's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx + self.offset) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery + self.offset) % field_height + screen_height // 2 - field_height // 2
+        # Update the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0])
+        self.rect.centery = round(self.y_pos - camera_offset[1])
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -781,11 +781,8 @@ class StraightLineMover(pygame.sprite.Sprite):
     Moves only through stright line, does not attack player.
     """
 
-    def __init__(self, camera, hp, speed, size, touch_damage, norm_image, hit_image, coin_amount, score):
+    def __init__(self, hp, speed, size, touch_damage, norm_image, hit_image, coin_amount, score):
         pygame.sprite.Sprite.__init__(self)
-
-        # Camera attribute to calculate relative position from screen
-        self.camera_rect = camera
 
         # Attributes related to HP and dealing with damage event
         self.full_hp = hp                       # Max HP for StraightLineMover sprite
@@ -797,8 +794,7 @@ class StraightLineMover(pygame.sprite.Sprite):
         self.hp_bar = None                      # HP bar of this sprite (currently not displayed)
 
         # Position and speed attributes
-        self.x_pos = random.randrange(0, field_width)           # Generating position is completely random in entire field
-        self.y_pos = random.randrange(0, field_height)          # Same as x_pos
+        self.x_pos = self.y_pos = 0                             # Field position, will be determined after screen position is defined
         self.speed = speed                                      # Moves at a fixed random speed
         self.direction = random.uniform(-math.pi, math.pi)      # Moves towards a fixed, random direction in radians
         self.x_speed = self.speed * math.cos(self.direction)    # Calculate x-direction speed using trigonometry
@@ -813,9 +809,13 @@ class StraightLineMover(pygame.sprite.Sprite):
         self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
         self.rect = self.image.get_rect()
 
-        # Calculate the sprite's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        # Define the sprite's screen position
+        self.rect.center = (random.randrange(0, field_width) + screen_width // 2 - field_width // 2,
+                            random.randrange(0, field_height) + screen_height // 2 - field_height // 2)
+
+        # Calculate field position using screen position and camera offset
+        self.x_pos = self.rect.centerx + camera_offset[0]
+        self.y_pos = self.rect.centery + camera_offset[1]
 
         # Touch damage which will be applied to player
         self.touch_damage = touch_damage
@@ -832,7 +832,7 @@ class StraightLineMover(pygame.sprite.Sprite):
 
         # Attribute to check whether spawneffect animation is complete
         self.spawning = True
-        self.spawneffect = SpawnEffect(self.camera_rect, [self.x_pos, self.y_pos], self.size)   # Generate spawneffect
+        self.spawneffect = SpawnEffect([self.x_pos, self.y_pos], self.size)   # Generate spawneffect
 
     def update(self, curspos, mouse_button_down):
         """
@@ -867,9 +867,9 @@ class StraightLineMover(pygame.sprite.Sprite):
             self.x_pos += self.x_speed / FPS
             self.y_pos += self.y_speed / FPS
 
-        # Calculate the sprite's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        # Update the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
 
     def get_damage(self, damage):
         """
@@ -903,7 +903,7 @@ class StraightLineMover(pygame.sprite.Sprite):
             self.hp_bar.kill()
 
         # Scatter coins
-        scatter_coins(self.camera_rect, [self.x_pos, self.y_pos], self.coin_amount, self.coin_scatter_speed_min_max)
+        scatter_coins(self)
 
         # Give score to player
         global player_score
@@ -921,10 +921,9 @@ class StraightLineMover1(StraightLineMover):
     Has 1 HP, 30x30 pixel size, -15 touch damage, and speed of 300~500 pixels/sec.
     """
 
-    def __init__(self, camera):
+    def __init__(self):
         StraightLineMover.__init__(
             self,
-            camera=camera,
             hp=1,
             speed=random.uniform(300, 500),
             size=[30, 30],
@@ -943,10 +942,9 @@ class StraightLineMover2(StraightLineMover):
     Has 5 HP, 50x50 pixel size, -45 touch damage, and speed of 200~350 pixels/sec.
     """
 
-    def __init__(self, camera):
+    def __init__(self):
         StraightLineMover.__init__(
             self,
-            camera=camera,
             hp=5,
             speed=random.uniform(200, 350),
             size=[50, 50],
@@ -965,10 +963,9 @@ class StraightLineMover3(StraightLineMover):
     Has 20 HP, 100x100 pixel size, -143 touch damage, and speed of 100~250 pixels/sec.
     """
 
-    def __init__(self, camera):
+    def __init__(self):
         StraightLineMover.__init__(
             self,
-            camera=camera,
             hp=20,
             speed=random.uniform(100, 250),
             size=[100, 100],
@@ -1050,21 +1047,8 @@ class Coin(pygame.sprite.Sprite):
     Initially generated coin has a fixed, random speed and direction.
     """
 
-    def __init__(self, camera, coin_amount, pos, speed):
+    def __init__(self, enemy_sprite, coin_amount):
         pygame.sprite.Sprite.__init__(self)
-
-        # Camera attribute to calculate relative position from screen
-        self.camera_rect = camera
-
-        # Position speed, and acceleration attributes
-        self.x_pos, self.y_pos = pos                            # Coin's field position given by killed enemy sprite
-        self.speed = speed                                      # Moves at a fixed random speed
-        self.acc = -1500
-        self.direction = random.uniform(-math.pi, math.pi)      # Moves towards a fixed, random direction in radians
-        self.x_speed = self.speed * math.cos(self.direction)    # Calculate x-direction speed using trigonometry
-        self.y_speed = self.speed * math.sin(self.direction)    # Same as x_speed
-        self.x_acc = self.acc * math.cos(self.direction)
-        self.y_acc = self.acc * math.sin(self.direction)
 
         # Size & image attributes
         # Size of a coin is determined by coin_amount attribute.
@@ -1074,9 +1058,20 @@ class Coin(pygame.sprite.Sprite):
         self.image.fill((255, 255, 0))             # Yellow coin
         self.rect = self.image.get_rect()
 
-        # Calculate the sprite's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        # Position speed, and acceleration attributes
+        self.x_pos, self.y_pos = enemy_sprite.x_pos, enemy_sprite.y_pos     # Coin's field position given by killed enemy sprite
+        self.scatter_speed_min_max = (300 + 33 * self.coin_amount, 300 + 40 * self.coin_amount)
+        self.speed = random.uniform(*self.scatter_speed_min_max)            # Moves at a fixed random speed
+        self.acc = -1500
+        self.direction = random.uniform(-math.pi, math.pi)                  # Moves towards a fixed, random direction in radians
+        self.x_speed = self.speed * math.cos(self.direction)                # Calculate x-direction speed using trigonometry
+        self.y_speed = self.speed * math.sin(self.direction)                # Same as x_speed
+        self.x_acc = self.acc * math.cos(self.direction)
+        self.y_acc = self.acc * math.sin(self.direction)
+
+        # Update the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
 
         self.scattered = False          # Is scattering action over?
         self.attracted = False          # Is attraction by player started?
@@ -1110,9 +1105,9 @@ class Coin(pygame.sprite.Sprite):
         self.x_pos += self.x_speed / FPS
         self.y_pos += self.y_speed / FPS
 
-        # Calculate the sprite's actual position on screen using camera center position
-        self.rect.centerx = round(self.x_pos - self.camera_rect.centerx) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - self.camera_rect.centery) % field_height + screen_height // 2 - field_height // 2
+        # Update the sprite's screen position using field position and camera offset
+        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
+        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
 
         # When collected by player
         if self.attaction_center and get_distance(self.rect.center, self.attaction_center) < 10:
@@ -1142,16 +1137,15 @@ class Coin(pygame.sprite.Sprite):
         self.y_speed = 1000 * y_ratio
 
 
-def scatter_coins(camera, pos, total_coins_amount, speed_min_max):
+def scatter_coins(enemy_sprite):
     """
     Generates several coin sprites at a given point and scatter them at random speed and random direction.
     The value of each coin will be randomly selected in a specific range, but total amount of coins will be constant.
-    :param camera: camera rect parameter for coin sprite
-    :param pos: position on field where all coins generated
-    :param total_coins_amount: total amount of coins
-    :param speed_min_max: list(or tuple) of minimum and maximum scattering speed of each coin
+    :param enemy_sprite: an enemy sprite that scatters coin
     :return: None
     """
+
+    total_coins_amount = enemy_sprite.coin_amount
 
     # Value of each coin will be randomly selected in a specific range
     coin_amount_min = total_coins_amount // 20 + 1
@@ -1160,10 +1154,10 @@ def scatter_coins(camera, pos, total_coins_amount, speed_min_max):
     # Repeatedly generate Coin sprite until total amount of coins become 0
     current_coin_amount = random.randint(coin_amount_min, coin_amount_max)
     while total_coins_amount > current_coin_amount:
-        Coin(camera, current_coin_amount, pos, random.uniform(*speed_min_max))
+        Coin(enemy_sprite, current_coin_amount)
         total_coins_amount -= current_coin_amount
         current_coin_amount = random.randint(coin_amount_min, coin_amount_max)
-    Coin(camera, total_coins_amount, pos, random.uniform(*speed_min_max))
+    Coin(enemy_sprite, total_coins_amount)
 
 
 # Generate sprite groups

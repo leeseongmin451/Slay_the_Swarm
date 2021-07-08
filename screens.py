@@ -257,7 +257,7 @@ class Background:
         self.image = image
         self.part_width, self.part_height = self.image.get_size()
         self.screen_w, self.screen_h = screen_size
-        self.camera_rect = camera
+        self.camera_offset = camera
 
         # Define four part of background
         self.part00_rect = self.image.get_rect()        # upper left part
@@ -273,14 +273,14 @@ class Background:
         """
 
         self.part00_rect.centerx = self.part01_rect.centerx = \
-            self.screen_w // 2 + (1.5 * self.part_width - self.camera_rect.centerx) % (2 * self.part_width) - self.part_width
+            self.screen_w // 2 + (1.5 * self.part_width - self.camera_offset[0]) % (2 * self.part_width) - self.part_width
         self.part10_rect.centerx = self.part11_rect.centerx = \
-            self.screen_w // 2 + (2.5 * self.part_width - self.camera_rect.centerx) % (2 * self.part_width) - self.part_width
+            self.screen_w // 2 + (2.5 * self.part_width - self.camera_offset[0]) % (2 * self.part_width) - self.part_width
 
         self.part00_rect.centery = self.part10_rect.centery = \
-            self.screen_h // 2 + (1.5 * self.part_height - self.camera_rect.centery) % (2 * self.part_height) - self.part_height
+            self.screen_h // 2 + (1.5 * self.part_height - self.camera_offset[1]) % (2 * self.part_height) - self.part_height
         self.part01_rect.centery = self.part11_rect.centery = \
-            self.screen_h // 2 + (2.5 * self.part_height - self.camera_rect.centery) % (2 * self.part_height) - self.part_height
+            self.screen_h // 2 + (2.5 * self.part_height - self.camera_offset[1]) % (2 * self.part_height) - self.part_height
 
     def draw(self, surface):
         """
@@ -366,10 +366,10 @@ class GamePlayScreen:
 
     def __init__(self):
         # Background instance
-        self.background = Background(background_grid_img, [screen_width, screen_height], camera_rect)
+        self.background = Background(background_grid_img, [screen_width, screen_height], camera_offset)
 
         # Player & target pointer instance
-        self.player = Player(camera_rect)
+        self.player = Player()
         self.target_pointer = TargetPointer()
 
         # Player HP, MP & manual weapon cooltime bar instances
@@ -395,15 +395,17 @@ class GamePlayScreen:
         self.target_pointer.update(curspos)
 
         # Set camera position to player
-        camera_rect.center = self.player.get_pos()
+        player_x_pos, player_y_pos = self.player.get_pos()
+        camera_offset[0] = player_x_pos - screen_width // 2
+        camera_offset[1] = player_y_pos - screen_height // 2
 
         # Generate enemy sprites
         if len(straight_line_mover1_group) < 200:
-            StraightLineMover1(camera_rect)
+            StraightLineMover1()
         if len(straight_line_mover2_group) < 70:
-            StraightLineMover2(camera_rect)
+            StraightLineMover2()
         if len(straight_line_mover3_group) < 30:
-            StraightLineMover3(camera_rect)
+            StraightLineMover3()
 
         # Update player HP, MP & manual weapon cooltime bars
         self.player_hp_bar.update(self.player.hp)
@@ -469,7 +471,7 @@ class GamePlayScreen:
             sprite.kill()
 
         # Regenerate player & target pointer instance
-        self.player = Player(camera_rect)
+        self.player = Player()
         self.target_pointer.kill()
         self.target_pointer = TargetPointer()
 
