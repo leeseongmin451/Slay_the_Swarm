@@ -389,6 +389,8 @@ class GamePlayScreen:
         # Boolean attribute whether display game play screen or not
         self.now_display = False
 
+        self.boss = BossLV1()
+
     def update(self, curspos, mouse_button_down):
         """
         Update background and all sprites on the screen during gameplay

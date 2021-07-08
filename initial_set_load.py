@@ -125,3 +125,7 @@ straight_line_mover2_img = pygame.image.load("img/character/straight_line_mover2
 straight_line_mover2_hit_img = pygame.image.load("img/character/straight_line_mover2_hit.png").convert()
 straight_line_mover3_img = pygame.image.load("img/character/straight_line_mover3.png").convert()
 straight_line_mover3_hit_img = pygame.image.load("img/character/straight_line_mover3_hit.png").convert()
+
+# Load images for boss sprites
+boss_lv1_img = pygame.image.load("img/character/boss_lv1.png").convert()
+boss_lv1_hit_img = pygame.image.load("img/character/boss_lv1_hit.png").convert()

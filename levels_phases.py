@@ -116,3 +116,22 @@ class BossPhase:
 
     def is_cleared(self):
         return self.cleared
+
+"""
+all_levels = []
+
+level_1 = Level()
+level_1.add_phase(NormalPhase(required_score=200,
+                              enemy_count_dict={"enemy_type": [StraightLineMover1],
+                                                "enemy_count": [120]}))
+level_1.add_phase(NormalPhase(required_score=400,
+                              enemy_count_dict={"enemy_type": [StraightLineMover1,
+                                                               StraightLineMover2],
+                                                "enemy_count": [160, 40]}))
+level_1.add_phase(NormalPhase(required_score=800,
+                              enemy_count_dict={"enemy_type": [StraightLineMover1,
+                                                               StraightLineMover2,
+                                                               StraightLineMover3],
+                                                "enemy_count": [200, 70, 30]}))
+all_levels.append(level_1)
+"""

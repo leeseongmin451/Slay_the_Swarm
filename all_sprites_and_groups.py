@@ -68,7 +68,10 @@ class Player(pygame.sprite.Sprite):
         self.current_imagenum = 0
         self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
         self.rect = self.image.get_rect()
-        self.rect.center = [round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])]
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Attributes for weapons
         self.target_pos = [0, 0]                                # Target position to shoot, equivalent to cursor position
@@ -138,7 +141,10 @@ class Player(pygame.sprite.Sprite):
         # And set the actual position on the screen with respect to camera position
         self.x_pos += self.x_speed / FPS
         self.y_pos += self.y_speed / FPS
-        self.rect.center = [round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])]
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Use all equipped weapons
         self.automatic_weapon.update()
@@ -305,8 +311,8 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.fired_weapon = fired_weapon
 
         # Position & speed attributes
-        self.x_pos = round(self.fired_weapon.pos[0] + camera_offset[0])            # Initial x position
-        self.y_pos = round(self.fired_weapon.pos[1] + camera_offset[1])            # Initial y position
+        self.x_pos = self.fired_weapon.pos[0] + camera_offset[0]                # Initial x position
+        self.y_pos = self.fired_weapon.pos[1] + camera_offset[1]                # Initial y position
         self.x_speed = speed * math.cos(angle)      # Derive speed of x/y direction from given speed and shooting angle
         self.y_speed = speed * math.sin(angle)
 
@@ -329,8 +335,10 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Set the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0])
-        self.rect.centery = round(self.y_pos - camera_offset[1])
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Damage dealt to enemy
         self.power = power
@@ -371,8 +379,10 @@ class PlayerNormalBullet(pygame.sprite.Sprite):
         self.y_pos += self.y_speed / FPS
 
         # Update the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0])
-        self.rect.centery = round(self.y_pos - camera_offset[1])
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Delete the bullet sprite when it goes too far from the center of screen
         if get_distance([screen_width // 2, screen_height // 2], self.rect.center) > 1500:
@@ -481,8 +491,8 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
         self.fired_weapon = fired_weapon
 
         # Position & speed attributes
-        self.x_pos = round(self.fired_weapon.pos[0] + camera_offset[0])             # Initial x position
-        self.y_pos = round(self.fired_weapon.pos[1] + camera_offset[1])             # Initial y position
+        self.x_pos = self.fired_weapon.pos[0] + camera_offset[0]                # Initial x position
+        self.y_pos = self.fired_weapon.pos[1] + camera_offset[1]                # Initial y position
         self.speed = speed
         self.x_speed = self.y_speed = 0
 
@@ -493,7 +503,10 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
         self.current_frame_num = 0                                                      # Variable for counting frames
         self.image = pygame.transform.scale(self.image_frame_list[self.current_frame_num], self.size)   # Get first image to display
         self.rect = self.image.get_rect()
-        self.rect.center = [round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])]
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Maximum attributes of cannonball
         self.max_power = max_power      # Maximum power the cannonball can have when fully charged
@@ -541,7 +554,11 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
             # Fix the position to the center of weapon(or player) while charging
             self.x_pos = round(self.fired_weapon.pos[0] + camera_offset[0])
             self.y_pos = round(self.fired_weapon.pos[1] + camera_offset[1])
-            self.rect = self.image.get_rect(center=[round(self.x_pos - camera_offset[0]), round(self.y_pos - camera_offset[1])])
+            self.rect = self.image.get_rect()
+            x_offset = screen_width // 2 - field_width // 2
+            y_offset = screen_height // 2 - field_height // 2
+            self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+            self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
             # Decrease MP of player
             self.fired_weapon.user.mp -= self.charging_mp
@@ -553,8 +570,10 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
             self.y_pos += self.y_speed / FPS
 
         # Update the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0])
-        self.rect.centery = round(self.y_pos - camera_offset[1])
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Attack enemies
         # Check collision with any of enemy sprites
@@ -626,8 +645,10 @@ class SpawnEffect(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Update the sprite's screen position using foeld position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Attribute for check whether spawning animation is over
         # This attribute will be referenced by the enemy sprite generated from this spawneffect.
@@ -647,8 +668,10 @@ class SpawnEffect(pygame.sprite.Sprite):
         """
 
         # Update the sprite's screen position using foeld position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -701,8 +724,10 @@ class HitEffect(pygame.sprite.Sprite):
         """
 
         # Update the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0])
-        self.rect.centery = round(self.y_pos - camera_offset[1])
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -763,8 +788,10 @@ class Explosion(pygame.sprite.Sprite):
         """
 
         # Update the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0])
-        self.rect.centery = round(self.y_pos - camera_offset[1])
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # Update image at each frame
         if self.current_frame_num < self.n_frames:
@@ -869,8 +896,10 @@ class StraightLineMover(pygame.sprite.Sprite):
             self.y_pos += self.y_speed / FPS
 
         # Update the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
     def get_damage(self, damage):
         """
@@ -910,7 +939,7 @@ class StraightLineMover(pygame.sprite.Sprite):
         global player_score
         player_score = self.score
 
-        # Generate explosion animation twice as big as self, then killed
+        # Generate explosion animation three times as big as self, then killed
         explode_size = [self.size[0] * 3, self.size[1] * 3]
         Explosion(self, explode_size)
         self.kill()
@@ -980,6 +1009,193 @@ class StraightLineMover3(StraightLineMover):
             score=100
         )
         StraightLineMover3.group.add(self)
+
+
+"""
+DEFINING BOSS SPRITES
+
+Each level has a unique boss sprite at the last phase (phase 5).
+The boss behaves and looks similar to commom enemy sprites, 
+but has very high HP, attack patterns hard to deal with, and very big size.
+
+When a boss is killed, it does disappear not immediately but with a time interval.
+Multiple explosion effects surround boss sprite.
+It gives a lot of score and coins after killed.
+"""
+
+
+class BossLV1(pygame.sprite.Sprite):
+    """
+    Level 1 Boss
+
+    Boss Lv.1 has exactly same movement as StraightLineMover sprites,
+    but has big size, high HP, slow speed.
+    """
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Attributes related to HP and dealing with damage event
+        self.full_hp = 400                      # Max HP for StraightLineMover sprite
+        self.hp = self.full_hp                  # Current HP for StraightLineMover sprite
+        self.got_damaged = False                # Indicates whether got damaged
+        self.dead = False                       # For starting death effect of boss
+        self.death_frame_count = 2 * FPS        # Disappears 2 secs after HP gets 0
+        self.blink_count = 6                    # The two images will take turn being displayed 3 times for each
+        self.frames_per_blink = FPS // 30       # Blinking animation will be displayed at 30fps
+        self.current_damage_animation_frame = 0
+        self.hp_bar = None                      # HP bar of this sprite (currently not displayed)
+
+        # Position and speed attributes
+        self.x_pos = self.y_pos = 0                             # Field position, will be determined after screen position is defined
+        self.speed = 100                                        # Moves at a fixed random speed
+        self.direction = random.uniform(-math.pi, math.pi)      # Moves towards a fixed, random direction in radians
+        self.x_speed = self.speed * math.cos(self.direction)    # Calculate x-direction speed using trigonometry
+        self.y_speed = self.speed * math.sin(self.direction)    # Same as x_speed
+
+        # Size & image attributes
+        self.size = [200, 200]
+        self.norm_image = pygame.transform.scale(boss_lv1_img, self.size)       # Normal image of StraightLineMover instance
+        self.hit_image = pygame.transform.scale(boss_lv1_hit_img, self.size)    # Image displayed only when got damaged, slightly brighter than normal one
+        self.image_list = [self.norm_image, self.hit_image]                     # Image list for faster image selection
+        self.current_imagenum = 0
+        self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
+        self.rect = self.image.get_rect()
+
+        # Define the sprite's screen position
+        # Boss sprite spawns out of screen, but not too far from player
+        # One of four sides of screen will be selected to spawn on
+        spawn_pos_type = random.choice(["up", "down", "left", "right"])
+        if spawn_pos_type == "up":
+            self.rect.centerx = random.randrange(-self.size[0], screen_width + self.size[0])
+            self.rect.centery = -self.size[1]
+        elif spawn_pos_type == "down":
+            self.rect.centerx = random.randrange(-self.size[0], screen_width + self.size[0])
+            self.rect.centery = screen_height + self.size[1]
+        if spawn_pos_type == "left":
+            self.rect.centerx = -self.size[0]
+            self.rect.centery = random.randrange(-self.size[1], screen_height + self.size[1])
+        elif spawn_pos_type == "right":
+            self.rect.centerx = screen_width + self.size[0]
+            self.rect.centery = random.randrange(-self.size[1], screen_height + self.size[0])
+
+        # Calculate field position using screen position and camera offset
+        self.x_pos = self.rect.centerx + camera_offset[0]
+        self.y_pos = self.rect.centery + camera_offset[1]
+
+        # Touch damage which will be applied to player
+        self.touch_damage = 2300
+
+        # Coin amount & coin scatter speed attribute
+        self.coin_amount = 500
+        self.coin_scatter_speed_min_max = (100 + 22 * self.coin_amount, 100 + 25 * self.coin_amount)
+
+        # Score attribute
+        self.score = 2500
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        all_enemies.add(self)
+
+    def update(self, curspos, mouse_button_down):
+        """
+        Move sprite by updating position.
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
+        :return: None
+        """
+
+        # Normal movement if HP > 0
+        if not self.dead:
+            # Deal with damage event
+            if self.got_damaged:
+                if self.current_damage_animation_frame % self.frames_per_blink == 0:
+                    self.current_imagenum = (self.current_imagenum + 1) % 2     # Change imagenum to 0 or 1
+                    self.blink_count -= 1                                       # Reduce remaining blinking counts
+                    self.image = self.image_list[self.current_imagenum]     # Set the image according to imagenum
+
+                self.current_damage_animation_frame += 1                    # Count frames passed from got damaged
+
+                # If blinking animation ends
+                if self.blink_count == 0:
+                    self.current_imagenum = 0       # Set the image to normal one
+                    self.got_damaged = False        # No blinking until getting another damage
+                    self.image = self.image_list[self.current_imagenum]     # Set the image according to imagenum
+
+            # Update position
+            self.x_pos += self.x_speed / FPS
+            self.y_pos += self.y_speed / FPS
+
+        # Generate sequential explosions for 2 seconds and then kill the boss sprite
+        else:
+            self.current_imagenum = (self.current_imagenum + 1) % 4     # Change imagenum to 0 or 1
+            self.image = self.image_list[self.current_imagenum // 2]    # Set the image according to imagenum
+
+            if random.random() < .15:
+                size_multiplier = random.uniform(.4, 1.2)
+                explosion_size = [round(s * size_multiplier) for s in self.size]
+                explosion_x_offset = random.uniform(-self.rect.w, self.rect.w)
+                explosion_y_offset = random.uniform(-self.rect.h, self.rect.h)
+                explosion = Explosion(self, explosion_size, offset=(explosion_x_offset, explosion_y_offset))
+                print(explosion.rect.center)
+
+            self.death_frame_count -= 1
+            if self.death_frame_count <= 0:
+                self.death()
+
+        # Update the sprite's screen position using field position and camera offset
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
+
+    def get_damage(self, damage):
+        """
+        Reduce HP when collided with projectile from player(attacked by player). Call death function when HP <= 0
+        :param damage: power of the projectile
+        :return: None
+        """
+
+        # Start blinking animation and initialize blink count
+        self.got_damaged = True
+        self.blink_count = 6
+
+        # Apply damage by reducing HP, or call death() if HP <= 0
+        self.hp -= damage
+        # If HP bar already exists, delete it and generate new HP bar.
+        if self.hp_bar:
+            self.hp_bar.kill()
+        if self.hp > 0:
+            self.hp_bar = HPBar(self)
+        else:
+            self.dead = True
+
+    def death(self):
+        """
+        Generate explosion effect and coins/item, then delete sprite
+        :return: None
+        """
+
+        # Delete HP bar if exists
+        if self.hp_bar:
+            self.hp_bar.kill()
+
+        # Scatter coins
+        scatter_coins(self)
+
+        # Give score to player
+        global player_score
+        player_score = self.score
+
+        # Generate additional explosions
+        explode_x_range = self.size[0] * 1.8
+        explode_y_range = self.size[1] * 1.8
+        for _ in range(round(explode_x_range * explode_y_range / 15000)):       # Number of explosions will be determined by the density of explosion
+            size_multiplier = random.uniform(1, 4)                             # Random size of explosion
+            x_offset = random.uniform(-explode_x_range, explode_x_range)        # Random position of explosion (offset from center)
+            y_offset = random.uniform(-explode_y_range, explode_y_range)
+            Explosion(self, [round(s * size_multiplier) for s in self.size], offset=(x_offset, y_offset))   # Generate explosion with offset
+        self.kill()
 
 
 class HPBar(pygame.sprite.Sprite):
@@ -1064,7 +1280,7 @@ class Coin(pygame.sprite.Sprite):
 
         # Position speed, and acceleration attributes
         self.x_pos, self.y_pos = enemy_sprite.x_pos, enemy_sprite.y_pos     # Coin's field position given by killed enemy sprite
-        self.scatter_speed_min_max = (300 + 33 * self.coin_amount, 300 + 40 * self.coin_amount)
+        self.scatter_speed_min_max = (300 + 5 * self.coin_amount, 450 + 8 * self.coin_amount)
         self.speed = random.uniform(*self.scatter_speed_min_max)            # Moves at a fixed random speed
         self.acc = -1500
         self.direction = random.uniform(-math.pi, math.pi)                  # Moves towards a fixed, random direction in radians
@@ -1074,8 +1290,10 @@ class Coin(pygame.sprite.Sprite):
         self.y_acc = self.acc * math.sin(self.direction)
 
         # Update the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         self.scattered = False          # Is scattering action over?
         self.attracted = False          # Is attraction by player started?
@@ -1110,8 +1328,10 @@ class Coin(pygame.sprite.Sprite):
         self.y_pos += self.y_speed / FPS
 
         # Update the sprite's screen position using field position and camera offset
-        self.rect.centerx = round(self.x_pos - camera_offset[0]) % field_width + screen_width // 2 - field_width // 2
-        self.rect.centery = round(self.y_pos - camera_offset[1]) % field_height + screen_height // 2 - field_height // 2
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
         # When collected by player
         if self.attaction_center and get_distance(self.rect.center, self.attaction_center) < 10:
@@ -1154,7 +1374,7 @@ def scatter_coins(enemy_sprite):
 
     # Value of each coin will be randomly selected in a specific range
     coin_amount_min = total_coins_amount // 20 + 1
-    coin_amount_max = total_coins_amount // 3
+    coin_amount_max = total_coins_amount // 10
 
     # Repeatedly generate Coin sprite until total amount of coins become 0
     current_coin_amount = random.randint(coin_amount_min, coin_amount_max)
