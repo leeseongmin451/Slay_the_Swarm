@@ -1,6 +1,6 @@
 import pygame.draw
 
-from all_sprites_and_groups import *
+from levels_phases import *
 
 
 class Button(pygame.sprite.Sprite):
@@ -357,6 +357,15 @@ class PlayerManualWeaponCoolTimeBar(BoundedBar):
         BoundedBar.__init__(self, pygame.Rect([30, 80, 300, 10]), target_value, (0, 0, 0), (255, 0, 0), (255, 255, 255))
 
 
+class PhaseProgressBar(BoundedBar):
+    """
+    A child class of BoundedBar to display current phase progress
+    """
+
+    def __init__(self, target_value):
+        BoundedBar.__init__(self, pygame.Rect([710, 40, 500, 30]), target_value, (0, 0, 0), (255, 255, 0), (255, 255, 255))
+
+
 class GamePlayScreen:
     """
     A screen class to display game play screen
@@ -400,11 +409,11 @@ class GamePlayScreen:
         camera_offset[1] = player_y_pos - screen_height // 2
 
         # Generate enemy sprites
-        if len(straight_line_mover1_group) < 200:
+        if len(StraightLineMover1.group) < 200:
             StraightLineMover1()
-        if len(straight_line_mover2_group) < 70:
+        if len(StraightLineMover1.group) < 70:
             StraightLineMover2()
-        if len(straight_line_mover3_group) < 30:
+        if len(StraightLineMover1.group) < 30:
             StraightLineMover3()
 
         # Update player HP, MP & manual weapon cooltime bars

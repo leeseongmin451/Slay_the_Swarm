@@ -257,8 +257,8 @@ class PlayerMinigun:
         self.target_pos = [0, 0]                    # Will follow cursor position
         self.aiming_angle = 0
 
-        self.attack_interval = .1                   # 10 attacks/sec
-        self.last_attacked_time = time.time()       # A fixed timepoint to measure interval
+        self.attack_interval = 6                    # 6 frames/attack (10 attacks/sec)
+        self.passed_frames_from_last_attack = 0     # To measure elapsed time from last attack
 
     def update(self):
         """
@@ -271,13 +271,14 @@ class PlayerMinigun:
         self.target_pos = self.user.target_pos
 
         # After attack interval, calculate shooting angle and call "attack" method
-        if time.time() - self.last_attacked_time >= self.attack_interval:
+        self.passed_frames_from_last_attack += 1
+        if self.passed_frames_from_last_attack >= self.attack_interval:
             relative_x = self.target_pos[0] - self.pos[0]
             relative_y = self.target_pos[1] - self.pos[1]
             self.aiming_angle = math.atan2(relative_y, relative_x)
 
             self.attack()
-            self.last_attacked_time = time.time()       # reset last_attacked_time to now
+            self.passed_frames_from_last_attack = 0       # reset passed_frames_from_last_attack to 0
 
     def attack(self):
         """
@@ -920,6 +921,7 @@ class StraightLineMover1(StraightLineMover):
     A child class that inherited StraightLineMover class
     Has 1 HP, 30x30 pixel size, -15 touch damage, and speed of 300~500 pixels/sec.
     """
+    group = pygame.sprite.Group()       # Sprite group for StraightLineMover1 sprites
 
     def __init__(self):
         StraightLineMover.__init__(
@@ -933,7 +935,7 @@ class StraightLineMover1(StraightLineMover):
             coin_amount=10,
             score=10
         )
-        straight_line_mover1_group.add(self)
+        StraightLineMover1.group.add(self)
 
 
 class StraightLineMover2(StraightLineMover):
@@ -941,6 +943,7 @@ class StraightLineMover2(StraightLineMover):
     A child class that inherited StraightLineMover class
     Has 5 HP, 50x50 pixel size, -45 touch damage, and speed of 200~350 pixels/sec.
     """
+    group = pygame.sprite.Group()       # Sprite group for StraightLineMover2 sprites
 
     def __init__(self):
         StraightLineMover.__init__(
@@ -954,7 +957,7 @@ class StraightLineMover2(StraightLineMover):
             coin_amount=15,
             score=30
         )
-        straight_line_mover2_group.add(self)
+        StraightLineMover2.group.add(self)
 
 
 class StraightLineMover3(StraightLineMover):
@@ -962,6 +965,7 @@ class StraightLineMover3(StraightLineMover):
     A child class that inherited StraightLineMover class
     Has 20 HP, 100x100 pixel size, -143 touch damage, and speed of 100~250 pixels/sec.
     """
+    group = pygame.sprite.Group()       # Sprite group for StraightLineMover3 sprites
 
     def __init__(self):
         StraightLineMover.__init__(
@@ -975,7 +979,7 @@ class StraightLineMover3(StraightLineMover):
             coin_amount=30,
             score=100
         )
-        straight_line_mover3_group.add(self)
+        StraightLineMover3.group.add(self)
 
 
 class HPBar(pygame.sprite.Sprite):
@@ -1078,8 +1082,8 @@ class Coin(pygame.sprite.Sprite):
         self.attaction_center = None    # Origin of attraction
 
         # For caluculating duration
-        self.generated_time = time.time()
-        self.duration = 6 * random.uniform(0.8, 1.2)
+        self.existed_frames = 0
+        self.duration = 6 * random.uniform(0.8, 1.2) * FPS
 
         # Add this sprite to sprite groups
         all_sprites.add(self)
@@ -1114,7 +1118,8 @@ class Coin(pygame.sprite.Sprite):
             self.kill()
 
         # Kill coin after 6 secs (on average)
-        if time.time() - self.generated_time > self.duration:
+        self.existed_frames += 1
+        if self.existed_frames > self.duration:
             self.kill()
 
     def attract(self, attraction_center):
@@ -1174,9 +1179,6 @@ hiteffect_group = pygame.sprite.Group()         # Sprite group for all hit effec
 explosion_group = pygame.sprite.Group()         # Sprite group for all explosions
 
 all_enemies = pygame.sprite.Group()                 # Sprite group for all enemy sprites
-straight_line_mover1_group = pygame.sprite.Group()  # Sprite group for StraightLineMover1 sprites
-straight_line_mover2_group = pygame.sprite.Group()  # Sprite group for StraightLineMover2 sprites
-straight_line_mover3_group = pygame.sprite.Group()  # Sprite group for StraightLineMover3 sprites
 
 hp_bar_group = pygame.sprite.Group()                # Sprite group for HPBar sprites
 coin_group = pygame.sprite.Group()                  # Sprite group for Coin sprites
