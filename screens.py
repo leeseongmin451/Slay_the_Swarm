@@ -476,13 +476,13 @@ class GamePlayScreen:
         self.target_pointer = TargetPointer()
 
 
-class RestartButton(Button):
+class MainMenuButton(Button):
     """
     A specific type of Button class which returns to the main menu screen
     """
 
     def __init__(self):
-        Button.__init__(self, [800, 800, 320, 100], "RESTART", "verdana", 60, (255, 255, 255))
+        Button.__init__(self, [760, 800, 400, 100], "MAIN MENU", "verdana", 60, (255, 255, 255))
 
     def operate(self):
         game_over_screen.hide()
@@ -496,8 +496,12 @@ class GameOverScreen:
         self.gameover_text_surface = self.gameover_text_font.render("GAME OVER", True, (255, 255, 255))
         self.gameover_text_surface_rect = self.gameover_text_surface.get_rect(center=(960, 100))
 
+        # Main image
+        self.main_image = pygame.image.load("img/icon/gameover_icon.png")
+        self.main_image_rect = self.main_image.get_rect(center=(960, 540))
+
         # Restart button
-        self.restart_button = RestartButton()
+        self.restart_button = MainMenuButton()
 
         # Boolean attribute whether display game over screen or not
         self.now_display = False
@@ -521,6 +525,7 @@ class GameOverScreen:
 
         surface.fill((0, 0, 0))
         surface.blit(self.gameover_text_surface, self.gameover_text_surface_rect)
+        surface.blit(self.main_image, self.main_image_rect)
         self.restart_button.draw(surface)
 
     def show(self):
