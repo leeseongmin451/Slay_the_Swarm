@@ -374,12 +374,20 @@ class GamePlayScreen:
     """
 
     def __init__(self):
+        # All levels list
+        self.all_levels = all_levels
+        self.level_count = len(self.all_levels)
+        self.level = 1
+        self.current_level = self.all_levels[0]
+        self.current_level.initialize_level()
+
         # Background instance
         self.background = Background(background_grid_img, [screen_width, screen_height], camera_offset)
 
         # Player & target pointer instance
         self.player = Player()
         self.target_pointer = TargetPointer()
+        self.boss_pointer = None
 
         # Player HP, MP & manual weapon cooltime bar instances
         self.player_hp_bar = PlayerHPBar(self.player.full_hp)
@@ -389,14 +397,34 @@ class GamePlayScreen:
         # Boolean attribute whether display game play screen or not
         self.now_display = False
 
-        self.boss = BossLV1()
-        self.player.generate_boss_pointer(self.boss)
-
     def update(self, curspos, mouse_button_down):
         """
         Update background and all sprites on the screen during gameplay
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
+
+        # Generate boss pointer when during boss phase
+        if isinstance(self.current_level.current_phase, BossPhase) and not self.boss_pointer:
+            self.boss_pointer = BossPointer(self.player, self.current_level.current_phase.boss)
+
+        # Update current level
+        self.current_level.update()
+
+        # If current level is cleared
+        if self.current_level.is_cleared():
+            # Delete boss pointer
+            self.boss_pointer.kill()
+            self.boss_pointer = None
+
+            # If current level is the last level
+            if self.level == self.level_count:
+                pass
+            else:
+                # Go ahead to next level
+                self.current_level = self.all_levels[self.level]
+                self.level += 1
 
         # Update background position with respect to screen
         self.background.update()
@@ -413,14 +441,6 @@ class GamePlayScreen:
         player_x_pos, player_y_pos = self.player.get_pos()
         camera_offset[0] = player_x_pos - screen_width // 2
         camera_offset[1] = player_y_pos - screen_height // 2 + field_offset     # Vibrate camera vertically
-
-        # Generate enemy sprites
-        if len(StraightLineMover1.group) < 200:
-            StraightLineMover1()
-        if len(StraightLineMover1.group) < 70:
-            StraightLineMover2()
-        if len(StraightLineMover1.group) < 30:
-            StraightLineMover3()
 
         # Update player HP, MP & manual weapon cooltime bars
         self.player_hp_bar.update(self.player.hp)
@@ -484,6 +504,10 @@ class GamePlayScreen:
         # Kill all sprites including player
         for sprite in all_sprites:
             sprite.kill()
+
+        # Go back to level 1
+        self.current_level = all_levels[0]
+        self.current_level.initialize_level()
 
         # Regenerate player & target pointer instance
         self.player = Player()

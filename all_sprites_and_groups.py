@@ -7,7 +7,7 @@ from initial_set_load import *
 
 
 # Global variable for score
-player_score = 0
+player_score = [0]
 
 
 def get_distance(pos1, pos2):
@@ -119,9 +119,6 @@ class Player(pygame.sprite.Sprite):
         # Manual weapon: Both aiming and attacking are controlled by mouse movement and clicking
         self.manual_weapon = PlayerEnergyCannonLauncher(self)
 
-        # Boss pointer attribute
-        self.boss_pointer = None
-
         # Death attribute
         self.dead = False
 
@@ -220,15 +217,6 @@ class Player(pygame.sprite.Sprite):
 
         self.target_pos = target_pos
 
-    def generate_boss_pointer(self, boss_sprite):
-        """
-        Generate boss pointer sprite when boss appears
-        :param boss_sprite: boss to target
-        :return: None
-        """
-
-        self.boss_pointer = BossPointer(self, boss_sprite)
-
     def get_pos(self):
         """
         Returns player's position in field
@@ -252,9 +240,7 @@ class Player(pygame.sprite.Sprite):
         :return: None
         """
 
-        global player_score
-        self.score += player_score
-        player_score = 0
+        self.score = player_score
 
     def get_damage(self, damage):
         """
@@ -1033,8 +1019,7 @@ class StraightLineMover(pygame.sprite.Sprite):
         scatter_coins(self)
 
         # Give score to player
-        global player_score
-        player_score = self.score
+        player_score[0] += self.score
 
         # Generate explosion animation three times as big as self, then killed
         explode_size = [self.size[0] * 3, self.size[1] * 3]
@@ -1280,8 +1265,7 @@ class BossLV1(pygame.sprite.Sprite):
         scatter_coins(self)
 
         # Give score to player
-        global player_score
-        player_score = self.score
+        player_score[0] = self.score
 
         # Generate additional explosions
         explode_x_range = self.size[0] * 1.8
