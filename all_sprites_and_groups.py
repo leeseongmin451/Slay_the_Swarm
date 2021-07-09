@@ -1,4 +1,3 @@
-import time
 import math
 import random
 
@@ -22,6 +21,46 @@ def get_distance(pos1, pos2):
     x_difference = pos1[0] - pos2[0]
     y_difference = pos1[1] - pos2[1]
     return math.sqrt(x_difference*x_difference + y_difference*y_difference)
+
+
+class FieldVibrationController:
+    def __init__(self):
+        self.vibe_magnitude = 0
+        self.vibe_length = 0
+        self.vibe_frequency = 0
+
+        self.vibe_type = None
+        self.attenuation_const = -1
+
+        self.now_vibrating = False
+
+    def initialize(self, magnitude, length, frequency=30, vibe_type="v"):
+        self.vibe_type = vibe_type
+        self.vibe_magnitude = magnitude
+        self.vibe_length = length
+        self.vibe_frequency = frequency
+
+        if self.vibe_type == "v":
+            self.attenuation_const = 1
+        if self.vibe_type == "s":
+            self.attenuation_const = (1 / self.vibe_magnitude) ** (1 / self.vibe_length)
+
+        self.now_vibrating = True
+
+    def update(self):
+        field_offset = 0
+
+        if self.now_vibrating:
+            field_offset = self.vibe_magnitude * math.sin(math.pi * self.vibe_frequency * self.vibe_length / FPS)
+
+            self.vibe_magnitude *= self.attenuation_const
+            self.vibe_length -= 1
+
+            if self.vibe_length <= 0:
+                field_offset = 0
+                self.now_vibrating = False
+
+        return field_offset
 
 
 # Player sprite
@@ -614,10 +653,6 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
             self.x_pos = round(self.fired_weapon.pos[0] + camera_offset[0])
             self.y_pos = round(self.fired_weapon.pos[1] + camera_offset[1])
             self.rect = self.image.get_rect()
-            x_offset = screen_width // 2 - field_width // 2
-            y_offset = screen_height // 2 - field_height // 2
-            self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
-            self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
             # Decrease MP of player
             self.fired_weapon.user.mp -= self.charging_mp
@@ -664,6 +699,9 @@ class PlayerEnergyCannonBall(pygame.sprite.Sprite):
                 x_offset = random.uniform(-current_shock_range, current_shock_range)    # Random position of explosion (offset from center)
                 y_offset = random.uniform(-current_shock_range, current_shock_range)
                 Explosion(self, [round(s * size_multiplier) for s in self.size], offset=(x_offset, y_offset))   # Generate explosion with offset
+
+            # Generate field shaking effect
+            field_vibrator.initialize(20, 90, frequency=30, vibe_type="s")
 
             # Delete cannonball
             self.kill()
@@ -1253,6 +1291,11 @@ class BossLV1(pygame.sprite.Sprite):
             x_offset = random.uniform(-explode_x_range, explode_x_range)        # Random position of explosion (offset from center)
             y_offset = random.uniform(-explode_y_range, explode_y_range)
             Explosion(self, [round(s * size_multiplier) for s in self.size], offset=(x_offset, y_offset))   # Generate explosion with offset
+
+        # Generate field shaking effect
+        field_vibrator.initialize(30, 120, frequency=30, vibe_type="s")
+
+        # Delete sprite
         self.kill()
 
 
@@ -1281,8 +1324,8 @@ class HPBar(pygame.sprite.Sprite):
         all_sprites.add(self)
         hp_bar_group.add(self)
 
-        self.duration = 3                       # Only lasts for 3 secs, then disappeare after 3 secs
-        self.generated_time = time.time()       # Generated time
+        self.duration = 3 * FPS                 # Only lasts for 3 secs, then disappeare after 3 secs
+        self.remaining_frames = self.duration   # Remaining frames to disappear
 
     def update(self, curspos, mouse_button_down):
         """
@@ -1295,8 +1338,11 @@ class HPBar(pygame.sprite.Sprite):
         # Update position
         self.rect.topleft = (self.parent_sprite.rect.x, self.parent_sprite.rect.y - 10)
 
+        # Count remaining frames
+        self.remaining_frames -= 1
+
         # Delete HP bar after 3 seconds
-        if time.time() - self.generated_time >= self.duration:
+        if self.remaining_frames <= 0:
             self.kill()
 
     def reset_timer(self):
@@ -1311,7 +1357,7 @@ class HPBar(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=(self.parent_sprite.rect.x, self.parent_sprite.rect.y - 10))
 
         # reset remaining duration to 3 secs
-        self.generated_time = time.time()
+        self.remaining_frames = self.duration
 
 
 class Coin(pygame.sprite.Sprite):
@@ -1442,6 +1488,9 @@ def scatter_coins(enemy_sprite):
         current_coin_amount = random.randint(coin_amount_min, coin_amount_max)
     Coin(enemy_sprite, total_coins_amount)
 
+
+# Generate field vibrator
+field_vibrator = FieldVibrationController()
 
 # Generate sprite groups
 all_sprites = pygame.sprite.Group()             # Contains all sprites subject to update every frame

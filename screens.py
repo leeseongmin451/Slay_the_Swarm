@@ -406,10 +406,13 @@ class GamePlayScreen:
         self.player.aim(curspos)
         self.target_pointer.update(curspos)
 
+        # Update field vibrating effect
+        field_offset = field_vibrator.update()
+
         # Set camera position to player
         player_x_pos, player_y_pos = self.player.get_pos()
         camera_offset[0] = player_x_pos - screen_width // 2
-        camera_offset[1] = player_y_pos - screen_height // 2
+        camera_offset[1] = player_y_pos - screen_height // 2 + field_offset     # Vibrate camera vertically
 
         # Generate enemy sprites
         if len(StraightLineMover1.group) < 200:
