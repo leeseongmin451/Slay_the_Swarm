@@ -390,6 +390,7 @@ class GamePlayScreen:
         self.now_display = False
 
         self.boss = BossLV1()
+        self.player.generate_boss_pointer(self.boss)
 
     def update(self, curspos, mouse_button_down):
         """

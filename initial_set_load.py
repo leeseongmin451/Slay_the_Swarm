@@ -44,6 +44,8 @@ player_img = pygame.image.load("img/character/player.png").convert()
 # Load target pointer image
 target_pointer_img = pygame.image.load("img/target_pointer/target_pointer.png").convert()
 target_pointer_img.set_colorkey((0, 0, 0))          # Make black background invisible(transparent)
+boss_pointer_img = pygame.image.load("img/target_pointer/boss_pointer.png").convert()
+boss_pointer_img.set_colorkey((255, 255, 255))      # Make white background invisible(transparent)
 
 # Load image for PlayerNormalBullet sprite
 player_normal_bullet_animation = []

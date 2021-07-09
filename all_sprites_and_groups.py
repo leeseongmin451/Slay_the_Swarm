@@ -80,6 +80,9 @@ class Player(pygame.sprite.Sprite):
         # Manual weapon: Both aiming and attacking are controlled by mouse movement and clicking
         self.manual_weapon = PlayerEnergyCannonLauncher(self)
 
+        # Boss pointer attribute
+        self.boss_pointer = None
+
         # Death attribute
         self.dead = False
 
@@ -178,6 +181,15 @@ class Player(pygame.sprite.Sprite):
 
         self.target_pos = target_pos
 
+    def generate_boss_pointer(self, boss_sprite):
+        """
+        Generate boss pointer sprite when boss appears
+        :param boss_sprite: boss to target
+        :return: None
+        """
+
+        self.boss_pointer = BossPointer(self, boss_sprite)
+
     def get_pos(self):
         """
         Returns player's position in field
@@ -246,6 +258,53 @@ class TargetPointer(pygame.sprite.Sprite):
         """
 
         self.rect.center = curspos
+
+
+class BossPointer(pygame.sprite.Sprite):
+    """
+    An arrow-shaped sprite which indicates the location of boss sprite.
+    Appears only at boss phase.
+    """
+
+    def __init__(self, targeting_from, targeting_to):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Define targeting-from/to sprites
+        self.targeting_from = targeting_from
+        self.targeting_to = targeting_to
+
+        # Use two images for implementing rotation of arrow
+        self.image_orig = pygame.transform.scale(boss_pointer_img, (80, 15))    # Original image before rotating
+        self.image = self.image_orig.copy()                                     # Image to rotate
+        self.rect = self.image.get_rect()
+        self.rect.center = self.targeting_from.rect.center                      # Set position
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        target_pointer_group.add(self)
+
+    def update(self, curspos, mouse_button_down):
+        """
+        Rotate image according to relative position of two sprites
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
+        :return: None
+        """
+
+        # Reset position
+        self.rect.center = self.targeting_from.rect.center
+
+        # Calculate rotation angleof arrow to indicate targeting direction
+        dist_x = self.targeting_to.rect.centerx - self.targeting_from.rect.centerx
+        dist_y = self.targeting_to.rect.centery - self.targeting_from.rect.centery
+        angle = math.atan2(dist_y, dist_x) * 180 / math.pi
+
+        # Rotate image and set position
+        new_image = pygame.transform.rotate(self.image_orig, -angle)    # Rotate image
+        old_center = self.rect.center                                   # Copy position of original image
+        self.image = new_image                                          # Apply rotated image
+        self.rect = self.image.get_rect()                               # Get new rect from rotated image
+        self.rect.center = old_center                                   # Set position of new image rect
 
 
 class PlayerMinigun:
@@ -1136,8 +1195,7 @@ class BossLV1(pygame.sprite.Sprite):
                 explosion_size = [round(s * size_multiplier) for s in self.size]
                 explosion_x_offset = random.uniform(-self.rect.w, self.rect.w)
                 explosion_y_offset = random.uniform(-self.rect.h, self.rect.h)
-                explosion = Explosion(self, explosion_size, offset=(explosion_x_offset, explosion_y_offset))
-                print(explosion.rect.center)
+                Explosion(self, explosion_size, offset=(explosion_x_offset, explosion_y_offset))
 
             self.death_frame_count -= 1
             if self.death_frame_count <= 0:
