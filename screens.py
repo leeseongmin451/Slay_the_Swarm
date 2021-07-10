@@ -365,6 +365,15 @@ class PhaseProgressBar(BoundedBar):
     def __init__(self, target_value):
         BoundedBar.__init__(self, pygame.Rect([710, 40, 500, 30]), target_value, (0, 0, 0), (255, 255, 0), (255, 255, 255))
 
+    def set_target(self, target_value):
+        """
+        Reset the target value of the bar
+        :param target_value: target value to reset
+        :return: None
+        """
+
+        self.target_value = target_value
+
 
 class GamePlayScreen:
     """
@@ -393,6 +402,9 @@ class GamePlayScreen:
         self.player_hp_bar = PlayerHPBar(self.player.full_hp)
         self.player_mp_bar = PlayerMPBar(self.player.full_mp)
         self.player_manual_weapon_cooltime_bar = PlayerManualWeaponCoolTimeBar(self.player.manual_weapon.max_cooltime_frame_count)
+
+        # Phase progress bar
+        self.phase_progress_bar = PhaseProgressBar(self.current_level.current_phase_required_score)
 
         # Boolean attribute whether display game play screen or not
         self.now_display = False
@@ -447,6 +459,12 @@ class GamePlayScreen:
         self.player_mp_bar.update(self.player.mp)
         self.player_manual_weapon_cooltime_bar.update(self.player.manual_weapon.remaining_cooltime_frames)
 
+        # Reset target value of phase progress bar
+        self.phase_progress_bar.set_target(self.current_level.current_phase_required_score)
+
+        # Update phase progress bar
+        self.phase_progress_bar.update(self.current_level.current_phase_score)
+
         # Show game over screen if player dies
         if self.player.dead:
             self.hide()
@@ -478,6 +496,9 @@ class GamePlayScreen:
         self.player_hp_bar.draw(surface)
         self.player_mp_bar.draw(surface)
         self.player_manual_weapon_cooltime_bar.draw(surface)
+
+        # Draw phase progress bar
+        self.phase_progress_bar.draw(surface)
 
     def show(self):
         """

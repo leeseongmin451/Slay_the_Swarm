@@ -28,6 +28,10 @@ class Level:
         self.boss_phase = None      # Attribute for boss phase
         self.phase_num = 1          # Current phase number
 
+        # Score attribute of current playing phase, needs for displaying phase progress bar
+        self.current_phase_required_score = 0
+        self.current_phase_score = 0
+
         self.frames_to_clear = 0    # Measured time to clear this level in frame counts
         self.cleared = False        # Boolean attribute for clearing level
 
@@ -52,6 +56,8 @@ class Level:
         self.current_phase = self.all_phases[self.phase_num - 1]
         self.current_phase.initialize_phase()
 
+        self.current_phase_required_score = self.current_phase.required_score
+
         # Reset cleared status of this level
         self.cleared = False
 
@@ -63,6 +69,14 @@ class Level:
 
         # Update current phase
         self.current_phase.update()
+
+        # Update current phase's score
+        # At boss phase, phase progress bar is always full
+        if isinstance(self.current_phase, BossPhase):
+            self.current_phase_required_score = self.current_phase_score = 1
+        else:
+            self.current_phase_required_score = self.current_phase.required_score
+            self.current_phase_score = self.current_phase.current_score
 
         # If current phase is cleared
         if self.current_phase.is_cleared():
