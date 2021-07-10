@@ -393,6 +393,9 @@ class GamePlayScreen:
         # Background instance
         self.background = Background(background_grid_img, [screen_width, screen_height], camera_offset)
 
+        # Field offset attribute, used for vibrating entire field
+        self.field_offset = 0
+
         # Player & target pointer instance
         self.player = Player()
         self.target_pointer = TargetPointer()
@@ -447,12 +450,12 @@ class GamePlayScreen:
         self.target_pointer.update(curspos)
 
         # Update field vibrating effect
-        field_offset = field_vibrator.update()
+        self.field_offset = field_vibrator.update()
 
         # Set camera position to player
         player_x_pos, player_y_pos = self.player.get_pos()
         camera_offset[0] = player_x_pos - screen_width // 2
-        camera_offset[1] = player_y_pos - screen_height // 2 + field_offset     # Vibrate camera vertically
+        camera_offset[1] = player_y_pos - screen_height // 2 + self.field_offset    # Vibrate camera vertically
 
         # Update player HP, MP & manual weapon cooltime bars
         self.player_hp_bar.update(self.player.hp)
@@ -521,6 +524,10 @@ class GamePlayScreen:
         Remove all sprites from all groups except player
         :return: None
         """
+
+        # Reser field offset
+        field_vibrator.__init__()
+        self.field_offset = 0
 
         # Kill all sprites including player
         for sprite in all_sprites:

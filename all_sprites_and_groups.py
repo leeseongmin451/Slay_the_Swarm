@@ -24,40 +24,72 @@ def get_distance(pos1, pos2):
 
 
 class FieldVibrationController:
+    """
+    Field offset controller for field vibrating effect.
+    Uses sine function to implement vibrating magnitude, length, frequency, and attenuation
+
+    FieldVibrationController has two types of vibrating pattern.
+
+    Vibration: Vibrating magnitude should be constant,
+    so the attenuation constant will be 1.
+
+    Shake: Occurs when a big explosion effect or death of a boss sprite happens.
+    Vibrating magnitude should be gradually decrease at a constant ratio(attenuation).
+    So the attenuation constant will be less than 1.
+    """
+
     def __init__(self):
-        self.vibe_magnitude = 0
-        self.vibe_length = 0
-        self.vibe_frequency = 0
+        self.vibe_magnitude = 0         # Magnitude of vinration
+        self.vibe_length = 0            # Length of vibration in frames
+        self.vibe_frequency = 0         # Frequency of vibration in Hz
 
-        self.vibe_type = None
-        self.attenuation_const = -1
+        self.vibe_type = None           # "v": vibration, "s": shaking
+        self.attenuation_const = -1     # Attenuation of vibration
 
-        self.now_vibrating = False
+        self.now_vibrating = False      # Indicates whether start vibrating
 
     def initialize(self, magnitude, length, frequency=30, vibe_type="v"):
-        self.vibe_type = vibe_type
-        self.vibe_magnitude = magnitude
-        self.vibe_length = length
-        self.vibe_frequency = frequency
+        """
+        Start vibration with given vibration parameters
+        :param magnitude:
+        :param length:
+        :param frequency:
+        :param vibe_type:
+        :return: None
+        """
 
-        if self.vibe_type == "v":
+        # Set vibrating attributes
+        self.vibe_type = vibe_type          # Whether vibrate or shake
+        self.vibe_magnitude = magnitude     # Initial magnitude
+        self.vibe_length = length           # Length of vibration in frames
+        self.vibe_frequency = frequency     # Frequency of vibration in Hz
+
+        # Determine attenuation constant according to vibration type
+        if self.vibe_type == "v":           # For vibrating
             self.attenuation_const = 1
-        if self.vibe_type == "s":
+        if self.vibe_type == "s":           # For shaking
             self.attenuation_const = (1 / self.vibe_magnitude) ** (1 / self.vibe_length)
 
-        self.now_vibrating = True
+        self.now_vibrating = True           # Start vibration
 
     def update(self):
-        field_offset = 0
+        """
+        Calculate field offset using vibrating attrubutes at each loop of game
+        :return: current field offset
+        """
+
+        field_offset = 0        # Field offset to be calculated
 
         if self.now_vibrating:
+            # Calculate field offset
             field_offset = self.vibe_magnitude * math.sin(math.pi * self.vibe_frequency * self.vibe_length / FPS)
 
-            self.vibe_magnitude *= self.attenuation_const
-            self.vibe_length -= 1
+            self.vibe_magnitude *= self.attenuation_const   # Attenuate magnitude
+            self.vibe_length -= 1                           # Count remaining vibration length
 
+            # If vibration ends
             if self.vibe_length <= 0:
-                field_offset = 0
+                field_offset = 0            # Reset field offset
                 self.now_vibrating = False
 
         return field_offset
