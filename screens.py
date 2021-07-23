@@ -200,6 +200,39 @@ class Button(pygame.sprite.Sprite):
         surface.blit(self.text_surface, self.text_surface_rect)         # Draw text in button
 
 
+class PopupWindow:
+    """
+    A window class displayed during gameplay.
+
+    It can be used as upgrade window, pause window, etc.
+    """
+
+    def __init__(self, background_color, border_color, rect):
+        """
+        Set color, size, and position of window
+        :param background_color: background color of window
+        :param border_color: border color of window
+        :param rect: size & position of window
+        """
+
+        self.background_color = background_color
+        self.border_color = border_color
+        self.rect = pygame.Rect(rect)
+
+    def update(self):
+        pass
+
+    def draw(self, surface):
+        """
+        Draw window on screen
+        :param surface: surface to draw on
+        :return: None
+        """
+
+        pygame.draw.rect(surface, self.background_color, self.rect)
+        pygame.draw.rect(surface, self.border_color, self.rect, 3)
+
+
 class StartButton(Button):
     """
     A specific type of Button class which starts the game
