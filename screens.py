@@ -219,8 +219,18 @@ class PopupWindow:
         self.border_color = border_color
         self.rect = pygame.Rect(rect)
 
-    def update(self):
+        # Boolean attribute whether display this window or not
+        self.now_display = False
+
+    def update(self, curspos, mouse_button_down):
+        """
+        Update this window
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: boolean value to check mouse button is pressed
+        :return: None
+        """
         pass
+
 
     def draw(self, surface):
         """
@@ -231,6 +241,22 @@ class PopupWindow:
 
         pygame.draw.rect(surface, self.background_color, self.rect)
         pygame.draw.rect(surface, self.border_color, self.rect, 3)
+
+    def show(self):
+        """
+        Show this window
+        :return: None
+        """
+
+        self.now_display = True
+
+    def hide(self):
+        """
+        Hide this window
+        :return: None
+        """
+
+        self.now_display = False
 
 
 class StartButton(Button):
@@ -474,6 +500,51 @@ class PhaseProgressBar(BoundedBar):
         """
 
         self.target_value = target_value
+
+
+class GameQuitButton(Button):
+    """
+    A specific type of Button class which quits the game when paused
+    """
+
+    def __init__(self):
+        Button.__init__(self, [], "QUIT", "verdana", 30, (255, 255, 255))
+
+    def operate(self):
+        play_screen.hide()
+        game_over_screen.show()
+        pygame.mouse.set_visible(True)      # Show mouse cursor
+        play_screen.initialize()
+
+
+class PauseWindow(PopupWindow):
+    def __init__(self):
+        PopupWindow.__init__(self, (0, 0, 0), (255, 255, 255), [])
+        self.title = Text("PAUSED", "verdana", 50, (960, 400), "midtop")
+        self.message = Text("Press 'p' to continue", "verdana", 20, (960, 500), "center")
+        self.quit_button = GameQuitButton()
+
+    def update(self, curspos, mouse_button_down):
+        """
+        Update this window
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: boolean value to check mouse button is pressed
+        :return: None
+        """
+
+        self.quit_button.update(curspos, mouse_button_down)
+
+    def draw(self, surface):
+        """
+        Draw window on screen
+        :param surface: surface to draw on
+        :return: None
+        """
+
+        PopupWindow.draw(self, surface)
+        self.title.draw(surface)
+        self.message.draw(surface)
+        self.quit_button.draw(surface)
 
 
 class GamePlayScreen:
