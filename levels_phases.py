@@ -33,7 +33,13 @@ class Level:
         self.current_phase_score = 0
 
         self.frames_to_clear = 0    # Measured time to clear this level in frame counts
+        self.time_to_clear = 0      # Measured time to clear this level in real time
         self.cleared = False        # Boolean attribute for clearing level
+
+        # For calculating time average score (points/sec)
+        self.start_score = 0            # Player's score when starting this level
+        self.score = 0                  # Score got in this level
+        self.time_average_score = 0
 
     def add_phase(self, phase):
         """
@@ -56,10 +62,16 @@ class Level:
         self.current_phase = self.all_phases[self.phase_num - 1]
         self.current_phase.initialize_phase()
 
-        self.current_phase_required_score = self.current_phase.required_score
-
-        # Reset cleared status of this level
+        # Reset cleared time and status of this level
+        self.frames_to_clear = 0
+        self.time_to_clear = 0
         self.cleared = False
+
+        # Reset score attributes
+        self.current_phase_required_score = self.current_phase.required_score
+        self.start_score = player_score[0]
+        self.score = 0
+        self.time_average_score = 0
 
     def update(self):
         """
@@ -88,6 +100,14 @@ class Level:
                 self.current_phase = self.all_phases[self.phase_num]
                 self.current_phase.initialize_phase()
                 self.phase_num += 1
+
+        # Update playtime
+        self.frames_to_clear += 1
+        self.time_to_clear = self.frames_to_clear / FPS
+
+        # Update current score
+        self.score = player_score[0] - self.start_score
+        self.time_average_score = self.score / self.time_to_clear
 
     def is_cleared(self):
         """

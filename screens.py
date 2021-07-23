@@ -3,6 +3,74 @@ import pygame.draw
 from levels_phases import *
 
 
+class Text:
+    """
+    A text surface class to display all texts appearing in this game
+    """
+
+    def __init__(self, text, font, font_size, pos, fixpoint="topleft", color=(255, 255, 255)):
+        self.text = text                                                    # Content to display
+        self.font_size = font_size                                          # Size of this text
+        self.font = pygame.font.SysFont(font, self.font_size)               # Create font
+        self.color = color                                                  # Color of this text
+        self.text_surface = self.font.render(self.text, True, self.color)   # Create text surface
+        self.rect = self.text_surface.get_rect()                            # Surface rect
+
+        # Position attributes
+        self.pos = pos              # Position on screen to display
+        self.fixpoint = fixpoint    # Position to fix the text
+        self.fix_position()
+
+    def fix_position(self):
+        """
+        Determine exact position of text using fixpoint
+        :return: None
+        """
+
+        if self.fixpoint == "topleft":
+            self.rect.topleft = self.pos
+        elif self.fixpoint == "midtop":
+            self.rect.midtop = self.pos
+        elif self.fixpoint == "topright":
+            self.rect.topright = self.pos
+        elif self.fixpoint == "midleft":
+            self.rect.midleft = self.pos
+        elif self.fixpoint == "center":
+            self.rect.center = self.pos
+        elif self.fixpoint == "midright":
+            self.rect.midright = self.pos
+        elif self.fixpoint == "bottomleft":
+            self.rect.bottomleft = self.pos
+        elif self.fixpoint == "midbottom":
+            self.rect.midbottom = self.pos
+        elif self.fixpoint == "bottomright":
+            self.rect.bottomright = self.pos
+
+    def update_text(self, new_text):
+        """
+        Change text
+        :param new_text: new text to replace
+        :return: None
+        """
+
+        # Render the new text and create new text surface and rect
+        self.text = new_text
+        self.text_surface = self.font.render(self.text, True, self.color)
+        self.rect = self.text_surface.get_rect()
+
+        # Fix position again
+        self.fix_position()
+
+    def draw(self, surface):
+        """
+        Draw text on a given surface
+        :param surface: surface to draw on
+        :return: None
+        """
+
+        surface.blit(self.text_surface, self.rect)
+
+
 class Button(pygame.sprite.Sprite):
     """
     A rectangular button class
@@ -189,9 +257,7 @@ class MainMenuScreen:
 
     def __init__(self):
         # Title text
-        self.title_text_font = pygame.font.SysFont("verdana", 80)
-        self.title_text_surface = self.title_text_font.render("SLAY THE SWARM", True, (255, 255, 255))
-        self.title_text_surface_rect = self.title_text_surface.get_rect(center=(960, 100))
+        self.title_text = Text("SLAY THE SWARM", "verdana", 80, (960, 100), "center")
 
         # Main image
         self.main_image = pygame.image.load("img/icon/icon.png")
@@ -223,8 +289,10 @@ class MainMenuScreen:
         """
 
         surface.fill((0, 0, 0))
-        surface.blit(self.title_text_surface, self.title_text_surface_rect)
+        self.title_text.draw(surface)
+
         surface.blit(self.main_image, self.main_image_rect)
+
         self.start_button.draw(surface)
         self.quit_button.draw(surface)
 
@@ -409,6 +477,19 @@ class GamePlayScreen:
         # Phase progress bar
         self.phase_progress_bar = PhaseProgressBar(self.current_level.current_phase_required_score)
 
+        # Text instances to display
+        self.player_hp_text = Text("{}/{} HP".format(round(self.player.hp), self.player.full_hp), "verdana", 20, (350, 30))
+        self.player_mp_text = Text("{}/{} MP".format(round(self.player.mp), self.player.full_mp), "verdana", 20, (350, 60))
+
+        self.total_score_text = Text("TOTAL SCORE: {}".format(self.player.score), "verdana", 20, (30, 100), "topleft")
+
+        self.level_phase_text = Text("LEVEL {} / PHASE {}".format(self.level, self.current_level.phase_num), "verdana", 30, (960, 70), "midtop")
+        self.phase_score_text = Text("{} / {}".format(self.current_level.current_phase_score, self.current_level.current_phase_required_score), "verdana", 20, (1225, 40), "topleft")
+
+        self.level_score_text = Text("CURRENT LEVEL SCORE: {} pts".format(self.current_level.score), "verdana", 20, (screen_width - 30, 30), "topright")
+        self.level_playtime_text = Text("PLAYTIME: {0:0.4f} sec".format(self.current_level.time_to_clear), "verdana", 20, (screen_width - 30, 60), "topright")
+        self.level_time_avg_score_text = Text("TIME-AVG SCORE: {0:0.4f} pts/sec".format(self.current_level.time_average_score), "verdana", 20, (screen_width - 30, 90), "topright")
+
         # Boolean attribute whether display game play screen or not
         self.now_display = False
 
@@ -468,6 +549,23 @@ class GamePlayScreen:
         # Update phase progress bar
         self.phase_progress_bar.update(self.current_level.current_phase_score)
 
+        # Update texts containing numerical value
+        self.player_hp_text.update_text("{}/{} HP".format(round(self.player.hp), self.player.full_hp))
+        self.player_mp_text.update_text("{}/{} MP".format(round(self.player.mp), self.player.full_mp))
+
+        self.total_score_text.update_text("TOTAL SCORE: {}".format(self.player.score[0]))
+
+        if isinstance(self.current_level.current_phase, BossPhase):
+            self.level_phase_text.update_text("LEVEL {} BOSS".format(self.level))
+            self.phase_score_text.update_text(" ")
+        else:
+            self.level_phase_text.update_text("LEVEL {} / PHASE {}".format(self.level, self.current_level.phase_num))
+            self.phase_score_text.update_text("{} / {}".format(self.current_level.current_phase_score, self.current_level.current_phase_required_score))
+
+        self.level_score_text.update_text("CURRENT LEVEL SCORE: {} pts".format(self.current_level.score))
+        self.level_playtime_text.update_text("PLAYTIME: {0:0.4f} sec".format(self.current_level.time_to_clear))
+        self.level_time_avg_score_text.update_text("TIME-AVG SCORE: {0:0.4f} pts/sec".format(self.current_level.time_average_score))
+
         # Show game over screen if player dies
         if self.player.dead:
             self.hide()
@@ -502,6 +600,16 @@ class GamePlayScreen:
 
         # Draw phase progress bar
         self.phase_progress_bar.draw(surface)
+
+        # Draw all texts
+        self.player_hp_text.draw(surface)
+        self.player_mp_text.draw(surface)
+        self.level_phase_text.draw(surface)
+        self.phase_score_text.draw(surface)
+        self.total_score_text.draw(surface)
+        self.level_score_text.draw(surface)
+        self.level_playtime_text.draw(surface)
+        self.level_time_avg_score_text.draw(surface)
 
     def show(self):
         """
@@ -559,9 +667,7 @@ class MainMenuButton(Button):
 class GameOverScreen:
     def __init__(self):
         # Game over text
-        self.gameover_text_font = pygame.font.SysFont("verdana", 80)
-        self.gameover_text_surface = self.gameover_text_font.render("GAME OVER", True, (255, 255, 255))
-        self.gameover_text_surface_rect = self.gameover_text_surface.get_rect(center=(960, 100))
+        self.gameover_text = Text("GAME OVER", "verdana", 80, (960, 100), "center")
 
         # Main image
         self.main_image = pygame.image.load("img/icon/gameover_icon.png")
@@ -591,7 +697,7 @@ class GameOverScreen:
         """
 
         surface.fill((0, 0, 0))
-        surface.blit(self.gameover_text_surface, self.gameover_text_surface_rect)
+        self.gameover_text.draw(surface)
         surface.blit(self.main_image, self.main_image_rect)
         self.restart_button.draw(surface)
 
