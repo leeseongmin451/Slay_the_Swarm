@@ -508,7 +508,7 @@ class GameQuitButton(Button):
     """
 
     def __init__(self):
-        Button.__init__(self, [], "QUIT", "verdana", 30, (255, 255, 255))
+        Button.__init__(self, [900, 550, 120, 70], "QUIT", "verdana", 30, (255, 255, 255))
 
     def operate(self):
         play_screen.hide()
@@ -519,8 +519,8 @@ class GameQuitButton(Button):
 
 class PauseWindow(PopupWindow):
     def __init__(self):
-        PopupWindow.__init__(self, (0, 0, 0), (255, 255, 255), [])
-        self.title = Text("PAUSED", "verdana", 50, (960, 400), "midtop")
+        PopupWindow.__init__(self, (0, 0, 0), (255, 255, 255), [700, 405, 520, 250])
+        self.title = Text("PAUSED", "verdana", 50, (960, 420), "midtop")
         self.message = Text("Press 'p' to continue", "verdana", 20, (960, 500), "center")
         self.quit_button = GameQuitButton()
 
@@ -597,6 +597,12 @@ class GamePlayScreen:
         # Boolean attribute whether display game play screen or not
         self.now_display = False
 
+        # Attributes for pause control
+        self.p_pressed = False
+        self.p_released = False
+        self.paused = False
+        self.pause_window = PauseWindow()
+
     def update(self, curspos, mouse_button_down):
         """
         Update background and all sprites on the screen during gameplay
@@ -604,6 +610,23 @@ class GamePlayScreen:
         :param mouse_button_down: variable to check holding mouse button
         :return: None
         """
+
+        # Update pause control
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_p]:
+            self.p_pressed = True
+        if self.p_pressed and not keys[pygame.K_p]:
+            self.p_released = True
+            self.p_pressed = False
+        if self.p_released:
+            self.paused = not self.paused
+            pygame.mouse.set_visible(self.paused)
+            self.p_released = False
+
+        # Update nothing bot pause window
+        if self.paused:
+            self.pause_window.update(curspos, mouse_button_down)
+            return
 
         # Generate boss pointer when during boss phase
         if isinstance(self.current_level.current_phase, BossPhase) and not self.boss_pointer:
@@ -715,6 +738,10 @@ class GamePlayScreen:
         self.level_playtime_text.draw(surface)
         self.level_time_avg_score_text.draw(surface)
 
+        # Draw pause window if game is paused
+        if self.paused:
+            self.pause_window.draw(surface)
+
     def show(self):
         """
         Show this screen
@@ -753,6 +780,9 @@ class GamePlayScreen:
         self.player = Player()
         self.target_pointer.kill()
         self.target_pointer = TargetPointer()
+
+        # Return to non-pause status
+        self.paused = False
 
 
 class MainMenuButton(Button):
