@@ -128,6 +128,14 @@ straight_line_mover2_hit_img = pygame.image.load("img/character/straight_line_mo
 straight_line_mover3_img = pygame.image.load("img/character/straight_line_mover3.png").convert()
 straight_line_mover3_hit_img = pygame.image.load("img/character/straight_line_mover3_hit.png").convert()
 
+# Load images for WallUnit sprites
+wall_unit1_img = pygame.image.load("img/character/wall_unit1.png").convert()
+wall_unit1_hit_img = pygame.image.load("img/character/wall_unit1_hit.png").convert()
+wall_unit2_img = pygame.image.load("img/character/wall_unit2.png").convert()
+wall_unit2_hit_img = pygame.image.load("img/character/wall_unit2_hit.png").convert()
+wall_unit3_img = pygame.image.load("img/character/wall_unit3.png").convert()
+wall_unit3_hit_img = pygame.image.load("img/character/wall_unit3_hit.png").convert()
+
 # Load images for boss sprites
 boss_lv1_img = pygame.image.load("img/character/boss_lv1.png").convert()
 boss_lv1_hit_img = pygame.image.load("img/character/boss_lv1_hit.png").convert()

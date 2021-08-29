@@ -1125,6 +1125,56 @@ class StraightLineMover3(StraightLineMover):
         StraightLineMover3.group.add(self)
 
 
+class WallUnit(pygame.sprite.Sprite):
+    """
+    Enemy sprite
+
+
+
+    It does not attack player.
+    """
+
+    def __init__(self, hp, screen_pos, speed, direction, size, touch_damage, norm_image, hit_image, coin_amount, score):
+        pygame.sprite.Sprite.__init__(self)
+
+    def update(self, curspos, mouse_button_down):
+        """
+        Move sprite by updating position.
+        :param curspos: current cursor position on screen
+        :param mouse_button_down: variable to check holding mouse button
+        :return: None
+        """
+
+        pass
+
+    def get_damage(self, damage):
+        """
+        Reduce HP when collided with projectile from player(attacked by player). Call death function when HP <= 0
+        :param damage: power of the projectile
+        :return: None
+        """
+
+        pass
+
+    def death(self):
+        """
+        Generate explosion effect and coins/item, then delete sprite
+        :return: None
+        """
+
+        pass
+
+
+class WallUnit1(WallUnit):
+    def __init__(self, screen_pos, speed, direction):
+        WallUnit.__init__(self, 2, screen_pos, speed, direction)
+
+
+class Wall(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+
 """
 DEFINING BOSS SPRITES
 
