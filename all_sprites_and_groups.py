@@ -1137,6 +1137,64 @@ class WallUnit(pygame.sprite.Sprite):
     def __init__(self, hp, screen_pos, speed, direction, size, touch_damage, norm_image, hit_image, coin_amount, score):
         pygame.sprite.Sprite.__init__(self)
 
+        # Attributes related to HP and dealing with damage event
+        self.full_hp = hp                       # Max HP for StraightLineMover sprite
+        self.hp = self.full_hp                  # Current HP for StraightLineMover sprite
+        self.got_damaged = False                # Indicates whether got damaged
+        self.blink_count = 6                    # The two images will take turn being displayed 3 times for each
+        self.frames_per_blink = FPS // 30       # Blinking animation will be displayed at 30fps
+        self.current_damage_animation_frame = 0
+        self.hp_bar = None                      # HP bar of this sprite (currently not displayed)
+
+        # Position and speed attributes
+        self.x_pos = self.y_pos = 0                             # Field position, will be determined after screen position is defined
+        self.speed = speed                                      # Moves at a fixed random speed
+        self.direction = direction                              # Will be up, down, left, or right
+
+        # Set speed using direction info
+        if self.direction == "up":
+            self.x_speed = 0
+            self.y_speed = -speed
+        elif self.direction == "down":
+            self.x_speed = 0
+            self.y_speed = speed
+        elif self.direction == "left":
+            self.x_speed = -speed
+            self.y_speed = 0
+        else:
+            self.x_speed = speed
+            self.y_speed = 0
+
+        # Size & image attributes
+        self.size = size
+        self.norm_image = pygame.transform.scale(norm_image, self.size)         # Normal image of StraightLineMover instance
+        self.hit_image = pygame.transform.scale(hit_image, self.size)           # Image displayed only when got damaged, slightly brighter than normal one
+        self.image_list = [self.norm_image, self.hit_image]                     # Image list for faster image selection
+        self.current_imagenum = 0
+        self.image = self.image_list[self.current_imagenum]                     # Initially set current image to normal image
+        self.rect = self.image.get_rect()
+
+        # Define the sprite's screen position
+        self.rect.center = screen_pos
+
+        # Calculate field position using screen position and camera offset
+        self.x_pos = self.rect.centerx + camera_offset[0]
+        self.y_pos = self.rect.centery + camera_offset[1]
+
+        # Touch damage which will be applied to player
+        self.touch_damage = touch_damage
+
+        # Coin amount & coin scatter speed attribute
+        self.coin_amount = coin_amount
+        self.coin_scatter_speed_min_max = (100 + 22 * self.coin_amount, 100 + 25 * self.coin_amount)
+
+        # Score attribute
+        self.score = score
+
+        # Add this sprite to sprite groups
+        all_sprites.add(self)
+        all_enemies.add(self)       # Add sprite to enemy sprite group to draw
+
     def update(self, curspos, mouse_button_down):
         """
         Move sprite by updating position.
@@ -1145,7 +1203,30 @@ class WallUnit(pygame.sprite.Sprite):
         :return: None
         """
 
-        pass
+        # Deal with damage event
+        if self.got_damaged:
+            if self.current_damage_animation_frame % self.frames_per_blink == 0:
+                self.current_imagenum = (self.current_imagenum + 1) % 2  # Change imagenum to 0 or 1
+                self.blink_count -= 1  # Reduce remaining blinking counts
+                self.image = self.image_list[self.current_imagenum]  # Set the image according to imagenum
+
+            self.current_damage_animation_frame += 1  # Count frames passed from got damaged
+
+            # If blinking animation ends
+            if self.blink_count == 0:
+                self.current_imagenum = 0  # Set the image to normal one
+                self.got_damaged = False  # No blinking until getting another damage
+                self.image = self.image_list[self.current_imagenum]  # Set the image according to imagenum
+
+        # Update position
+        self.x_pos += self.x_speed / FPS
+        self.y_pos += self.y_speed / FPS
+
+        # Update the sprite's screen position using field position and camera offset
+        x_offset = screen_width // 2 - field_width // 2
+        y_offset = screen_height // 2 - field_height // 2
+        self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
+        self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
     def get_damage(self, damage):
         """
@@ -1154,7 +1235,19 @@ class WallUnit(pygame.sprite.Sprite):
         :return: None
         """
 
-        pass
+        # Start blinking animation and initialize blink count
+        self.got_damaged = True
+        self.blink_count = 6
+
+        # Apply damage by reducing HP, or call death() if HP <= 0
+        self.hp -= damage
+        # If HP bar already exists, delete it and generate new HP bar.
+        if self.hp_bar:
+            self.hp_bar.kill()
+        if self.hp > 0:
+            self.hp_bar = HPBar(self)
+        else:
+            self.death()
 
     def death(self):
         """
@@ -1162,12 +1255,44 @@ class WallUnit(pygame.sprite.Sprite):
         :return: None
         """
 
-        pass
+        # Delete HP bar if exists
+        if self.hp_bar:
+            self.hp_bar.kill()
+
+        # Scatter coins
+        scatter_coins(self)
+
+        # Give score to player
+        player_score[0] += self.score
+
+        # Generate explosion animation three times as big as self, then killed
+        explode_size = [self.size[0] * 3, self.size[1] * 3]
+        Explosion(self, explode_size)
+        self.kill()
 
 
 class WallUnit1(WallUnit):
+    """
+    A child class that inherited WallUnit class
+    Has 2 HP, 40x40 pixel size, and -15 touch damage.
+    """
+    group = pygame.sprite.Group()       # Sprite group for StraightLineMover1 sprites
+
     def __init__(self, screen_pos, speed, direction):
-        WallUnit.__init__(self, 2, screen_pos, speed, direction)
+        WallUnit.__init__(
+            self,
+            hp=2,
+            screen_pos=screen_pos,
+            speed=speed,
+            direction=direction,
+            size=(40, 40),
+            touch_damage=15,
+            norm_image=wall_unit1_img,
+            hit_image=wall_unit1_hit_img,
+            coin_amount=5,
+            score=5
+        )
+        WallUnit1.group.add(self)
 
 
 class Wall(pygame.sprite.Sprite):
