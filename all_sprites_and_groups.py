@@ -1228,6 +1228,11 @@ class WallUnit(pygame.sprite.Sprite):
         self.rect.centerx = round(self.x_pos - camera_offset[0] - x_offset) % field_width + x_offset
         self.rect.centery = round(self.y_pos - camera_offset[1] - y_offset) % field_height + y_offset
 
+        # Kill this sprite if it goes out too far from player
+        if not (-field_width // 2 < self.rect.centerx - screen_width // 2 < field_width // 2 and
+                -field_height // 2 < self.rect.centery - screen_height // 2 < field_height // 2):
+            self.kill()
+
     def get_damage(self, damage):
         """
         Reduce HP when collided with projectile from player(attacked by player). Call death function when HP <= 0
@@ -1276,7 +1281,7 @@ class WallUnit1(WallUnit):
     A child class that inherited WallUnit class
     Has 2 HP, 40x40 pixel size, and -15 touch damage.
     """
-    group = pygame.sprite.Group()       # Sprite group for StraightLineMover1 sprites
+    group = pygame.sprite.Group()       # Sprite group for WallUnit1 sprites
 
     def __init__(self, screen_pos, speed, direction):
         WallUnit.__init__(
@@ -1293,6 +1298,54 @@ class WallUnit1(WallUnit):
             score=5
         )
         WallUnit1.group.add(self)
+
+
+class WallUnit2(WallUnit):
+    """
+    A child class that inherited WallUnit class
+    Has 3 HP, 40x40 pixel size, and -25 touch damage.
+    """
+    group = pygame.sprite.Group()       # Sprite group for WallUnit2 sprites
+
+    def __init__(self, screen_pos, speed, direction):
+        WallUnit.__init__(
+            self,
+            hp=3,
+            screen_pos=screen_pos,
+            speed=speed,
+            direction=direction,
+            size=(40, 40),
+            touch_damage=25,
+            norm_image=wall_unit2_img,
+            hit_image=wall_unit2_hit_img,
+            coin_amount=7,
+            score=8
+        )
+        WallUnit2.group.add(self)
+
+
+class WallUnit3(WallUnit):
+    """
+    A child class that inherited WallUnit class
+    Has 8 HP, 80x80 pixel size, and -56 touch damage.
+    """
+    group = pygame.sprite.Group()       # Sprite group for WallUnit3 sprites
+
+    def __init__(self, screen_pos, speed, direction):
+        WallUnit.__init__(
+            self,
+            hp=8,
+            screen_pos=screen_pos,
+            speed=speed,
+            direction=direction,
+            size=(80, 80),
+            touch_damage=56,
+            norm_image=wall_unit3_img,
+            hit_image=wall_unit3_hit_img,
+            coin_amount=18,
+            score=25
+        )
+        WallUnit3.group.add(self)
 
 
 class Wall(pygame.sprite.Sprite):
