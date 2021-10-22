@@ -1175,7 +1175,7 @@ class WallUnit(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Define the sprite's screen position
-        self.rect.center = screen_pos
+        self.rect.topleft = screen_pos
 
         # Calculate field position using screen position and camera offset
         self.x_pos = self.rect.centerx + camera_offset[0]
@@ -1338,7 +1338,7 @@ class WallUnit3(WallUnit):
             screen_pos=screen_pos,
             speed=speed,
             direction=direction,
-            size=(80, 80),
+            size=(70, 70),
             touch_damage=56,
             norm_image=wall_unit3_img,
             hit_image=wall_unit3_hit_img,
@@ -1348,9 +1348,48 @@ class WallUnit3(WallUnit):
         WallUnit3.group.add(self)
 
 
-class Wall(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+class Wall:
+    def __init__(self, walltype):
+        self.walltype = walltype
+
+        if self.walltype == 1:
+            self.wall_unit_type = WallUnit1
+            self.grid_size = 40
+            self.speed = random.uniform(200, 300)
+            self.grid_hcnt, self.grid_vcnt = random.choice([(1, random.randrange(1, 35)),
+                                                            (random.randrange(1, 35), 1)])
+
+        elif self.walltype == 2:
+            self.wall_unit_type = WallUnit2
+            self.grid_size = 40
+            self.speed = random.uniform(250, 350)
+            self.grid_hcnt, self.grid_vcnt = random.choice([(random.randrange(1, 3), random.randrange(1, 35)),
+                                                            (random.randrange(1, 35), random.randrange(1, 3))])
+
+        else:
+            self.wall_unit_type = WallUnit3
+            self.grid_size = 70
+            self.speed = random.uniform(50, 100)
+            self.grid_hcnt, self.grid_vcnt = random.choice([(random.randrange(1, 4), random.randrange(1, 20)),
+                                                            (random.randrange(1, 20), random.randrange(1, 4))])
+
+        self.width = self.grid_hcnt * self.grid_size
+        self.height = self.grid_vcnt * self.grid_size
+
+        self.x = random.uniform(-field_width // 2, field_width // 2 - self.width) + screen_width // 2
+        if -self.width <= self.x <= screen_width:
+            self.y = random.uniform(screen_height // 2 - field_height // 2, -self.height) if random.choice([1, 2]) == 1 \
+                else random.uniform(screen_height, screen_height // 2 + field_height // 2 - self.height)
+
+        else:
+            self.y = random.uniform(-field_height // 2, field_height // 2 - self.height) + screen_height // 2
+
+        self.topleft = (round(self.x), round(self.y))
+
+        for m in range(self.grid_vcnt):
+            for n in range(self.grid_hcnt):
+                self.wall_unit_type((self.topleft[0] + n * self.grid_size, self.topleft[1] + m * self.grid_size),
+                                    self.speed, random.choice(["up", "down", "left", "right"]))
 
 
 """
