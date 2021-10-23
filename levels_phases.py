@@ -259,9 +259,15 @@ all_levels = []         # List of all levels
 
 # Define level 1
 level_1 = Level()
+
 level_1.add_phase(NormalPhase(required_score=300,           # Phase 1
                               enemy_count_dict={"enemy_type": [StraightLineMover1],
                                                 "enemy_count": [120]}))
+"""
+level_1.add_phase(NormalPhase(required_score=3000000,           # Phase 1
+                              enemy_count_dict={"enemy_type": [Wall2],
+                                                "enemy_count": [300]}))
+"""
 level_1.add_phase(NormalPhase(required_score=600,           # Phase 2
                               enemy_count_dict={"enemy_type": [StraightLineMover1,
                                                                StraightLineMover2],

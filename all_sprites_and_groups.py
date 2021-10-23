@@ -1075,7 +1075,7 @@ class StraightLineMover1(StraightLineMover):
             touch_damage=15,
             norm_image=straight_line_mover1_img,
             hit_image=straight_line_mover1_hit_img,
-            coin_amount=10,
+            coin_amount=15,
             score=10
         )
         StraightLineMover1.group.add(self)
@@ -1097,7 +1097,7 @@ class StraightLineMover2(StraightLineMover):
             touch_damage=45,
             norm_image=straight_line_mover2_img,
             hit_image=straight_line_mover2_hit_img,
-            coin_amount=15,
+            coin_amount=22,
             score=30
         )
         StraightLineMover2.group.add(self)
@@ -1119,7 +1119,7 @@ class StraightLineMover3(StraightLineMover):
             touch_damage=143,
             norm_image=straight_line_mover3_img,
             hit_image=straight_line_mover3_hit_img,
-            coin_amount=30,
+            coin_amount=43,
             score=100
         )
         StraightLineMover3.group.add(self)
@@ -1294,7 +1294,7 @@ class WallUnit1(WallUnit):
             touch_damage=15,
             norm_image=wall_unit1_img,
             hit_image=wall_unit1_hit_img,
-            coin_amount=5,
+            coin_amount=10,
             score=5
         )
         WallUnit1.group.add(self)
@@ -1318,7 +1318,7 @@ class WallUnit2(WallUnit):
             touch_damage=25,
             norm_image=wall_unit2_img,
             hit_image=wall_unit2_hit_img,
-            coin_amount=7,
+            coin_amount=13,
             score=8
         )
         WallUnit2.group.add(self)
@@ -1342,13 +1342,19 @@ class WallUnit3(WallUnit):
             touch_damage=56,
             norm_image=wall_unit3_img,
             hit_image=wall_unit3_hit_img,
-            coin_amount=18,
+            coin_amount=30,
             score=25
         )
         WallUnit3.group.add(self)
 
 
 class Wall:
+    """
+    A virtual group class consists of WallUnit class instances
+
+
+    """
+
     def __init__(self, walltype):
         self.walltype = walltype
 
@@ -1386,10 +1392,45 @@ class Wall:
 
         self.topleft = (round(self.x), round(self.y))
 
+        direction = random.choice(["up", "down", "left", "right"])
+
         for m in range(self.grid_vcnt):
             for n in range(self.grid_hcnt):
                 self.wall_unit_type((self.topleft[0] + n * self.grid_size, self.topleft[1] + m * self.grid_size),
-                                    self.speed, random.choice(["up", "down", "left", "right"]))
+                                    self.speed, direction)
+
+
+class Wall1(Wall):
+    """
+    A child class of Wall class, consists of WallUnit1
+    """
+
+    group = WallUnit1.group
+
+    def __init__(self):
+        Wall.__init__(self, 1)
+
+
+class Wall2(Wall):
+    """
+    A child class of Wall class, consists of WallUnit1
+    """
+
+    group = WallUnit2.group
+
+    def __init__(self):
+        Wall.__init__(self, 2)
+
+
+class Wall3(Wall):
+    """
+    A child class of Wall class, consists of WallUnit1
+    """
+
+    group = WallUnit3.group
+
+    def __init__(self):
+        Wall.__init__(self, 3)
 
 
 """
@@ -1468,7 +1509,7 @@ class BossLV1(pygame.sprite.Sprite):
         self.touch_damage = 2300
 
         # Coin amount & coin scatter speed attribute
-        self.coin_amount = 500
+        self.coin_amount = 750
         self.coin_scatter_speed_min_max = (100 + 22 * self.coin_amount, 100 + 25 * self.coin_amount)
 
         # Score attribute
